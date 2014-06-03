@@ -1,7 +1,7 @@
 html {
 	font-size: 16px;
 	background: #FCFCFC;
-	font-family: helvetica;
+	font-family: 'Source Sans Pro', 'Droid Sans', helvetica, arial
 }
 article {
 	display: none;
@@ -24,13 +24,47 @@ header.app-header {
 	height: 37px;
 	box-shadow: 0px 2px 4px -3px #333;
 }
+header.app-header .left-button,
+header.app-header h1,
+header.app-header .right-button {
+	width: 33%;
+}
+header.app-header .left-button,
+header.app-header h1{
+	float: left;
+}
+header.app-header .right-button{
+	float: right;
+	text-align: right;
+}
+header.app-header:after {
+	clear: both;
+}
+
+header.app-header .left-button,
+header.app-header .right-button {
+	margin-top: 3px;
+}
+header.app-header .left-button input[type=button],
+header.app-header .right-button input[type=button]{
+	font-size: 0.68rem;
+	border: 0px;
+	background: transparent;
+	color: white;
+	text-transform: uppercase;
+}
+header.app-header .left-button input[type=button] {
+	color: #9E001C;
+}
+header.app-header .right-button input[type=button] {
+	color: #4B893F;
+}
 footer.app-footer {
 	border-top-width: 1px; 
 	bottom: 0%;
 	box-shadow: 0px -2px 4px -3px #333;
 }
 header h1 {
-	font-family: 'Source Sans Pro', 'Droid Sans', helvetica, arial;
 	font-weight: 300;
 }
 header.app-header h1 {
@@ -46,10 +80,11 @@ footer.app-footer nav ul li{
 	text-align: center;
 	padding-top: 5px;
 	padding-bottom: 5px;	
-	font-size: 0.7rem;
+	font-size: 0.73rem;
 	text-shadow: 1px 1px 1px white;
 	text-transform: capitalize;
 	color: #999;
+	font-weight: 400;
 }
 
 footer.app-footer nav ul li.first {
@@ -63,8 +98,6 @@ footer.app-footer nav ul li.last {
 	border-left: 1px solid #EAEAEA;
 }
 footer.app-footer nav ul li.active {
-	color: black;
-	font-weight: bold;
 	color: #4B893F;
 }
 footer.app-footer nav ul li.active div{
