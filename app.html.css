@@ -185,8 +185,8 @@ footer.app-footer nav ul:after {
 	min-width: 30px;
 	min-height: 30px;
 	text-align: center;
-	font-size: 1rem;
-	padding: 10px;
+	font-size: .8rem;
+	padding: 8px 6px;
 
 }
 #lista-matches section.pessoas ul li .col-quantidade {
