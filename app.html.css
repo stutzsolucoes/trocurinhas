@@ -1,13 +1,16 @@
 /* ESTILO DO TEMPLATE PADRAO */
 html {
-	font-size: 16px;
+	font-size: 15px;
 	background: #FCFCFC;
-	font-family: 'Source Sans Pro', 'Droid Sans', helvetica, arial
+	font-family: 'Arimo', 'Droid Sans', helvetica, arial;
+	font-weight: 400;
+	color: #444;
 }
 article {
 	display: none;
 	position: fixed;
 	top: 37px;
+	width: 100%;
 }
 header.app-header,
 footer.app-footer {
@@ -76,7 +79,7 @@ header.app-header h1 {
 	text-align: center;
 	font-size: 1.1em;
 	line-height: 1.5em;
-	color: black;
+	color: #666;
 }
 
 footer.app-footer nav ul li{
@@ -116,12 +119,80 @@ footer.app-footer nav ul:after {
 
 /* TELA lista-matches */
 /** FIM TELA lista-matches **/
-#lista-matches {display: block;}
-#lista-matches section.pessoas {display: block;}
+#lista-matches {display: inherit;}
+#lista-matches section.pessoas {display: inherit;}
 #lista-matches section.arena-troca {display: none;}
 #lista-matches header {width: 100%;}
 #lista-matches header h1 {
 	font-size: 0.79rem;
 	color: #C9C9C9;
 	text-align: right;
+}
+
+#lista-matches section.pessoas ul li {
+	padding-top: 10px;
+	padding-bottom: 10px;
+	font-size: 0.755rem;
+	color: #AAA;
+	border-bottom: 1px solid #EEE;
+	border-top: 1px solid white;
+}
+#lista-matches section.pessoas ul li:nth-child(1) {
+	border-top: 0px;
+}
+#lista-matches section.pessoas ul li div.grupo:after {
+	clear: both;
+	display:table;
+}
+#lista-matches section.pessoas ul li div.grupo:after {
+	content:"";
+	display:table;
+}
+
+#lista-matches section.pessoas ul li .col-identificacao {
+	float: left;
+}
+
+#lista-matches section.pessoas ul li .col-identificacao {
+	min-width: 190px;
+	margin-left: 1%;
+	margin-right: 1%;
+}
+
+#lista-matches section.pessoas ul li .col-identificacao h2{
+	font-weight: 700;
+	font-family: 'Cabin Condensed', sans-serif;
+	font-size: 1.14rem;
+	color: #444;
+
+}
+#lista-matches section.pessoas ul li .col-identificacao em{
+	font-style: normal;
+	font-family: 'Arimo', sans-serif;
+}
+#lista-matches section.pessoas ul li .col-identificacao aside{
+	color: #DDD;
+}
+
+#lista-matches section.pessoas ul li .col-action {
+	font-family: serif;
+}
+#lista-matches section.pessoas ul li .col-action,
+#lista-matches section.pessoas ul li .col-quantidade {
+	float: right;
+	margin: 0% 2%;
+	margin-top: 5px;
+	min-width: 30px;
+	min-height: 30px;
+	text-align: center;
+	font-size: 1rem;
+	padding: 10px;
+
+}
+#lista-matches section.pessoas ul li .col-quantidade {
+	background: #4B893F;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: -1px;
+	border-radius: 36px;
+	color: white;
 }
