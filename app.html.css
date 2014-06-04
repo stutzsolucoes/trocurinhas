@@ -119,8 +119,7 @@ footer.app-footer nav ul:after {
 
 /* TELA lista-matches */
 /** FIM TELA lista-matches **/
-#lista-matches {display: inherit;}
-#lista-matches section.pessoas {display: inherit;}
+#lista-matches section.pessoas {display: block;}
 #lista-matches section.arena-troca {display: none;}
 #lista-matches header {width: 100%;}
 #lista-matches header h1 {

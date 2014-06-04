@@ -2,36 +2,43 @@
 
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+	<meta charset="utf-8">
 
-  <title>Trocurinhas</title>
-  <meta name="description" content="Trocurinhas">
-  <meta name="author" content="Stutz Soluções">
+	<title>Trocurinhas</title>
+	<meta name="description" content="Trocurinhas">
+	<meta name="author" content="Stutz Soluções">
 
-  <link rel="stylesheet" href="css/reset.css">
+	<link rel="stylesheet" href="css/reset.css">
 
-  <link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700|Cabin+Condensed:400,700|Arimo:400,700|Roboto+Condensed:400,700|Archivo+Narrow' rel='stylesheet' type='text/css'>
-  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" href="app.html.css">
-  <script src="app.html.js"></script>
+	<link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700|Cabin+Condensed:400,700|Arimo:400,700|Roboto+Condensed:400,700|Archivo+Narrow' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400' rel='stylesheet' type='text/css'>
 
-  <!--[if lt IE 9]>
-  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-  <![endif]-->
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
+	<script	src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.2/jquery.mobile.min.css" />
+	<script	src="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.2/jquery.mobile.min.js"></script>
+
+	<link rel="stylesheet" href="app.html.css">
+	<script src="app.html.js"></script>
+	<script src="js/mqttws31.js"></script>
+
+	<!--[if lt IE 9]>
+		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
 </head>
 
 <body>
 	
-    <header class="app-header">
+<!--     <header class="app-header">
       <div class="left-button">
         <input type="button" value="cancelar"/>
       </div>
-      <h1>Pessoas próximas</h1>
+      <h1 id="section-title">Pessoas próximas</h1>
       <div class="right-button">
         <input type="button" value="confirmar"/>
       </div>
     </header>
-
+ -->
     <article id="figurinhas-procuradas">
       <header>
         <h1>Figurinhas que faltam</h1>
@@ -39,9 +46,15 @@
       </header>
 
       <section class="listagem">
-        <ul>
-          <li>1</li>
-        </ul>
+		<div data-bind="foreach: neededStickersModel.items">
+			<div style="float: left; margin-right: 10px">
+				<button class="ui-shadow ui-btn ui-corner-all"
+					style="width: 80px; color: yellow"
+					data-bind="text: number, 
+						      click: $parent.neededStickersModel.toggleSelection,
+						      style: { backgroundColor: selected() ? 'green' : '#999999' }"></button>
+			</div>
+		</div>
       </section>
 
     </article>
@@ -53,9 +66,15 @@
       </header>
 
       <section class="listagem">
-        <ul>
-          <li>1</li>
-        </ul>
+		<div data-bind="foreach: availableStickersModel.items">
+			<div style="float: left; margin-right: 10px">
+				<button class="ui-shadow ui-btn ui-corner-all"
+					style="width: 80px; color: yellow"
+					data-bind="text: number, 
+						      click: $parent.availableStickersModel.toggleSelection,
+						      style: { backgroundColor: selected() ? 'green' : '#999999' }"></button>
+			</div>
+		</div>
       </section>
 
     </article>
@@ -70,24 +89,24 @@
       </header>  
 
       <section>
-        <form class="form-conect">
+        <form class="form-connect">
           
           <div class="form-field">
-            <input type="text" placeholder="Nome ou Apelido" />
+            <input type="text" placeholder="Nome ou Apelido" data-bind="nickname" />
             <div class="input-subtitle">Ex.: Tiãozinho</div>
           </div>
           
           <div class="form-field">
-            <input type="text" placeholder="Onde quer trocar as figurinhas?" />
+            <input type="text" placeholder="Onde quer trocar as figurinhas?" data-bind="place" />
             <div class="input-subtitle">Ex.: Banca da 406 Norte, 13h30</div>
           </div>
 
           <div class="form-field">
-            <input type="text" placeholder="Como te identificar?" /><input type="button" value="F" style="display: none" />
+            <input type="text" placeholder="Como te identificar?" data-bind="selfInfo" />
             <div class="input-subtitle">Ex.: Boné vermelho</div>
           </div>
 
-          <input type="submit" value="Conectar">
+          <input type="submit" value="Conectar" data-bind="click: connectAndPublishSelfInfo" />
 
         </form>
 
@@ -168,15 +187,15 @@
     <footer class="app-footer">
       <nav>
         <ul>
-          <li class="first">
+          <li class="first" onclick="vm.showSection('figurinhas-procuradas')">
             <div style="letter-spacing: 2px">]]]?]</div>
             Faltando
           </li>
-          <li class="mid">
+          <li class="mid" onclick="vm.showSection('figurinhas-repetidas')">
             <div style="letter-spacing: 2px">[[[[[</div>
             Repetidas
           </li>
-          <li class="last active">
+          <li class="last active" onclick="vm.showResultados()">
             <div style="font-family: monospace; font-size:14px; letter-spacing: 0px;">
               \<span style="font-size:10px">o</span>/
             </div>
@@ -185,6 +204,11 @@
         </ul>
       </nav>
     </footer>
+
+	<script>
+		var vm = new AppModel();
+		ko.applyBindings(vm);
+	</script>
 
 </body>
 </html>
