@@ -91,12 +91,12 @@ function SelectableItemsViewModel(viewId, viewPageTitle, storageName0, defaultIt
 	_self.items = new ko.observableArray();
 	_self._observable = ko.observable(0);
 	_self._dirty = false;
-	storageName = storageName0;
+	_self.storageName = storageName0;
 
 	// recover previous selected state from storage
 	var _plainItems = defaultItems;
-	if(storageName!=null) {
-		var _storedJson = localStorage[storageName + "-items"];
+	if(_self.storageName!=null) {
+		var _storedJson = localStorage[_self.storageName + "-items"];
 		if (_storedJson != null) {
 			var resItems = JSON.parse(_storedJson);
 			if (resItems != null && resItems.length > 0) {
@@ -118,14 +118,14 @@ function SelectableItemsViewModel(viewId, viewPageTitle, storageName0, defaultIt
 		if (_self._dirty) {
 			// store changes locally
 			var recItems = new Array();
-			for ( var i = 0; i < _self.items.length; i++) {
+			for ( var i = 0; i < _self.items().length; i++) {
 				recItems.push({
-					number : _self.items[i].number,
-					selected : _self.items[i].selected()
+					number : _self.items()[i].number,
+					selected : _self.items()[i].selected()
 				});
 			}
-			if(storageName!=null) {
-				localStorage[storageName + "-items"] = JSON.stringify(recItems);
+			if(_self.storageName!=null) {
+				localStorage[_self.storageName + "-items"] = JSON.stringify(recItems);
 			}
 
 			// notify listeners about changes
