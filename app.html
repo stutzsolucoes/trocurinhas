@@ -56,7 +56,7 @@
             <button
               data-bind="text: number, 
                       click: $parent.toggleSelection,
-                      style: { backgroundColor: selected() ? 'green' : '' }"></button>
+                      css: { selected: selected() }"></button>
           </div>
         </div>
         
@@ -90,7 +90,7 @@
             <button
               data-bind="text: number, 
                       click: $parent.toggleSelection,
-                      style: { backgroundColor: selected() ? 'green' : '' }"></button>
+                      css: { selected: selected() }"></button>
           </div>
         </div>
 
