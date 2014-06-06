@@ -114,8 +114,6 @@
 
           <button class="ui-shadow ui-btn ui-corner-all" data-bind="text: 'Conectar', click: connectAndPublishSelfInfo" />
 
-          <button class="ui-shadow ui-btn ui-corner-all" data-bind="text: 'Upload', click: publishStickersInfoToServer"></button>
-
         </form>
 
       </section>
@@ -127,6 +125,7 @@
       	Matches
           <ul data-bind="foreach: receivedStickersScreen()">
             <li>
+              <button data-bind="click:$parent.showArenaTroca">Test</button>
               <div class="grupo">
                 <div class="col-identificacao">
                   <h2><span data-bind="text:nickname"></span></h2>
@@ -144,12 +143,13 @@
             </li>
 
           </ul>
+          <button data-bind="click:disconnectFromMQTTServer()">Disconnect</button>
       </section>  
 
       <section class="arena-troca" id="arena-troca" data-bind="with:selectedReceivedStickersInfo">
           <div class="identificacao">
             <h3><span data-bind="text:nickname"></h3>
-            <!-- <span data-bindo="text:timeElapsedInfo"> -->
+            <!-- <span data-bind="text:timeElapsedInfo"> -->
             <aside><span data-bind="text:place"></aside>
           </div>
           <div class="listagens">

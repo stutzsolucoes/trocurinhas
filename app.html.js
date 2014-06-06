@@ -2,9 +2,17 @@
 // constructor
 function AppModel() {
 	// initialize needed and available stickers model
-	var _defaultItems = new Array();
+	var _defaultItems1 = new Array();
 	for ( var i = 1; i <= 600; i++) {
-		_defaultItems.push({
+		_defaultItems1.push({
+			number : i,
+			selected : false
+		});
+	}
+
+	var _defaultItems2 = new Array();
+	for ( var i = 1; i <= 600; i++) {
+		_defaultItems2.push({
 			number : i,
 			selected : false
 		});
@@ -18,11 +26,11 @@ function AppModel() {
 	}
 
 	var _self = this;
-	this.neededStickersModel = new SelectableItemsModel("needed-stickers", _defaultItems);
+	this.neededStickersModel = new SelectableItemsModel("needed-stickers", _defaultItems1);
 	this.neededStickersModel.subscribeToChanges(function() {_self.publishStickersInfoToServer()});
 	this.neededStickersModel.subscribeToChanges(function() {_self.recalculateStickersInfoRanking()});
 	
-	this.availableStickersModel = new SelectableItemsModel("available-stickers", _defaultItems);
+	this.availableStickersModel = new SelectableItemsModel("available-stickers", _defaultItems2);
 	this.availableStickersModel.subscribeToChanges(function() {_self.publishStickersInfoToServer()});
 	this.availableStickersModel.subscribeToChanges(function() {_self.recalculateStickersInfoRanking()});
 
@@ -43,16 +51,16 @@ function AppModel() {
 	var _self = this;
 	window.setInterval(function() {
 		//add time messages
-		for(var i=0; i<_self.receivedStickersScreen.length; i++) {
-			var stickersInfo = _self.receivedStickersScreen[i];
+		for(var i=0; i<_self.receivedStickersInfo.length; i++) {
+			var stickersInfo = _self.receivedStickersInfo[i];
 			var info = "";
 			var timeElapsed = new Date().getTime() - stickersInfo.time;
 			if(timeElapsed < 60000) {
 				info = "Há poucos segundos";
 			} else if(timeElapsed < 3600000) {
-				info = "Há "+ (timeElapsed/60000) +" minutos";
+				info = "Há "+ Math.ceil(timeElapsed/60000) +" minutos";
 			} else if(timeElapsed >= 3600000) {
-				info = "Há "+ (timeElapsed/3600000) +" horas";
+				info = "Há "+ Math.ceil(timeElapsed/3600000) +" horas";
 			}
 			stickersInfo.timeElapsedInfo(info);
 		}
@@ -104,7 +112,10 @@ AppModel.prototype.disconnectFromMQTTServer = function() {
 			this.mqttClient.disconnect();
 			this.mqttClient = null;
 			this.mqttConnected = false;
-		} catch (e) {}
+			this.showResultados();
+		} catch (e) {
+			console.log(e);
+		}
 	}
 }
 
@@ -242,7 +253,7 @@ AppModel.prototype.showSection = function(name) {
 	document.getElementById(name).style.display = "block";
 }
 AppModel.prototype.showResultados = function() {
-	if (this.mqttConnection == null) {
+	if (!this.mqttConnected) {
 		this.showSection("formulario-conexao");
 	} else {
 		this.showSection("lista-matches");
@@ -254,8 +265,9 @@ AppModel.prototype.showPessoas = function() {
 	document.getElementById("arena-troca").style.display = "none";
 }
 AppModel.prototype.showArenaTroca = function(stickerInfo) {
-	this.selectedReceivedStickersInfo = stickerInfo
-	this.showSection("lista-matches");
+	var _self = this;
+	_self.selectedReceivedStickersInfo = stickerInfo;
+	_self.showSection("lista-matches");
 	document.getElementById("pessoas").style.display = "none";
 	document.getElementById("arena-troca").style.display = "block";
 }
