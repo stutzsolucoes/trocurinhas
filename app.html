@@ -13,6 +13,12 @@
 	<link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700|Cabin+Condensed:400,700|Arimo:400,700|Roboto+Condensed:400,700|Archivo+Narrow' rel='stylesheet' type='text/css'>
 	<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400' rel='stylesheet' type='text/css'>
 
+
+	<script src="js/knockout-min.js"></script>
+	<script	src="js/jquery.min.js"></script>
+	<link rel="stylesheet" href="css/jquery.mobile.min.css" />
+	<script	src="js/jquery.mobile.min.js"></script>
+
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
 	<script	src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.2/jquery.mobile.min.css" />
@@ -92,21 +98,23 @@
         <form class="form-connect">
           
           <div class="form-field">
-            <input type="text" placeholder="Nome ou Apelido" data-bind="nickname" />
+            <input type="text" placeholder="Nome ou Apelido" data-bind="value:nickname" />
             <div class="input-subtitle">Ex.: Tiãozinho</div>
           </div>
           
           <div class="form-field">
-            <input type="text" placeholder="Onde quer trocar as figurinhas?" data-bind="place" />
+            <input type="text" placeholder="Onde quer trocar as figurinhas?" data-bind="value:place" />
             <div class="input-subtitle">Ex.: Banca da 406 Norte, 13h30</div>
           </div>
 
           <div class="form-field">
-            <input type="text" placeholder="Como te identificar?" data-bind="selfInfo" />
+            <input type="text" placeholder="Como te identificar?" data-bind="value:selfInfo" />
             <div class="input-subtitle">Ex.: Boné vermelho</div>
           </div>
 
-          <input type="submit" value="Conectar" data-bind="click: connectAndPublishSelfInfo" />
+          <button class="ui-shadow ui-btn ui-corner-all" data-bind="text: 'Conectar', click: connectAndPublishSelfInfo" />
+
+          <button class="ui-shadow ui-btn ui-corner-all" data-bind="text: 'Upload', click: publishStickersInfoToServer"></button>
 
         </form>
 
@@ -115,52 +123,34 @@
 
     <article id="lista-matches">
 
-      <section class="pessoas">
-          <ul>
+      <section class="pessoas" id="pessoas">
+      	Matches
+          <ul data-bind="foreach: receivedStickersScreen()">
             <li>
-
               <div class="grupo">
-
                 <div class="col-identificacao">
-                  <h2>Tiãozinho</h2>
+                  <h2><span data-bind="text:nickname"></span></h2>
                   <div>
-                    <em>Banca da 206 Norte às 13h30</em>
+                    <em><span data-bind="text:place"></span></em>
                   </div>
-                  <aside>há 20 minutos</aside>
+                  <aside><span data-bind="text:timeElapsedInfo"></span></aside>
                 </div>
                 
                 <div class="col-action">&gt;</div>                  
-                <div class="col-quantidade">333</div>
+                <div class="col-quantidade"><span data-bind="text:availableStickers.length"></span></div>
 
               </div>              
 
             </li>
 
-            <li>
-
-              <div class="grupo">
-
-                <div class="col-identificacao">
-                  <h2>Bola</h2>
-                  <div>
-                    <em>Banca da 111 Norte às 13h30</em>
-                  </div>
-                  <aside>há 33 minutos</aside>
-                </div>
-                
-                <div class="col-action">&gt;</div>                  
-                <div class="col-quantidade">95</div>
-
-              </div>              
-
-            </li>
           </ul>
       </section>  
 
-      <section class="arena-troca">
+      <section class="arena-troca" id="arena-troca" data-bind="with:selectedReceivedStickersInfo">
           <div class="identificacao">
-            <h3>Tiãozinho</h3>
-            <aside>Banca da 206 Norte às 13h30</aside>
+            <h3><span data-bind="text:nickname"></h3>
+            <!-- <span data-bindo="text:timeElapsedInfo"> -->
+            <aside><span data-bind="text:place"></aside>
           </div>
           <div class="listagens">
             <nav>
@@ -170,13 +160,13 @@
             <div class="procuradas">
               <aside>figurinhas que <strong>você precisa</strong> e que essa pessoa tem</aside>
               <ul>
-                <li>1</li>
+                <li><span data-bind="text:stickersForReceivingFromPeer.length"></li>
               </ul>
             </div>
             <div class="repetidas">
               <aside>figurinhas que <strong>você tem</strong> e que essa pessoa precisa</aside>
               <ul>
-                <li>1</li>
+                <li><span data-bind="text:stickersForGivingToPeer.length"></li>
               </ul>
             </div>
           </div>

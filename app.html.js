@@ -17,28 +17,52 @@ function AppModel() {
 		localStorage["clientUUID"] = this.clientUUID;
 	}
 
+	var _self = this;
 	this.neededStickersModel = new SelectableItemsModel("needed-stickers", _defaultItems);
-	this.neededStickersModel.subscribeToChanges(this.publishStickersInfoToServer());
-	this.neededStickersModel.subscribeToChanges(this.recalculateStickersInfoRanking());
+	this.neededStickersModel.subscribeToChanges(function() {_self.publishStickersInfoToServer()});
+	this.neededStickersModel.subscribeToChanges(function() {_self.recalculateStickersInfoRanking()});
 	
 	this.availableStickersModel = new SelectableItemsModel("available-stickers", _defaultItems);
-	this.availableStickersModel.subscribeToChanges(this.publishStickersInfoToServer());
-	this.availableStickersModel.subscribeToChanges(this.recalculateStickersInfoRanking());
+	this.availableStickersModel.subscribeToChanges(function() {_self.publishStickersInfoToServer()});
+	this.availableStickersModel.subscribeToChanges(function() {_self.recalculateStickersInfoRanking()});
 
 	this.mqttClient = null;
 	this.mqttConnected = false;
-	this.mainTopicName = "/main/any";
+	this.mainTopicName = "/main/notclassified";
 
-	this.nickname = localStorage["nickname"];
-	this.place = localStorage["place"];
-	this.selfInfo = localStorage["selfInfo"];
+	this.nickname = ko.observable(localStorage["nickname"]);
+	this.place = ko.observable(localStorage["place"]);
+	this.selfInfo = ko.observable(localStorage["selfInfo"]);
 
-	this.receivedStickersInfo = ko.observableArray();
+	this.receivedStickersInfo = new Array();
+	this.receivedStickersScreen = ko.observableArray();
+	
+	this.selectedReceivedStickersInfo = null;
+	
+	//update elapsed time informations
+	var _self = this;
+	window.setInterval(function() {
+		//add time messages
+		for(var i=0; i<_self.receivedStickersScreen.length; i++) {
+			var stickersInfo = _self.receivedStickersScreen[i];
+			var info = "";
+			var timeElapsed = new Date().getTime() - stickersInfo.time;
+			if(timeElapsed < 60000) {
+				info = "Há poucos segundos";
+			} else if(timeElapsed < 3600000) {
+				info = "Há "+ (timeElapsed/60000) +" minutos";
+			} else if(timeElapsed >= 3600000) {
+				info = "Há "+ (timeElapsed/3600000) +" horas";
+			}
+			stickersInfo.timeElapsedInfo(info);
+		}
+	}, 5000);
 }
 
 AppModel.prototype.connectAndPublishSelfInfo = function() {
+	var _self = this;
 	this.connectToMQTTServer(this.mainTopicName, function() {
-		this.publishSelfStickersInfoToServer();
+		_self.publishStickersInfoToServer();
 	});
 }
 
@@ -49,9 +73,9 @@ AppModel.prototype.publishStickersInfoToServer = function() {
 		var stickersInfo = {
 			clientUUID: _self.clientUUID,
 			time: new Date().getTime(),
-			nickname: _self.nickname,
-			place: _self.place,
-			selfInfo: _self.selfInfo,
+			nickname: _self.nickname.peek(),
+			place: _self.place.peek(),
+			selfInfo: _self.selfInfo.peek(),
 			neededStickers: AppModel.getOnlySelectedItems(_self.neededStickersModel.items),
 			availableStickers: AppModel.getOnlySelectedItems(_self.availableStickersModel.items)
 			//stickersForReceivingFromPeer: Array - used later during ranking calculations
@@ -79,47 +103,71 @@ AppModel.prototype.disconnectFromMQTTServer = function() {
 		try {
 			this.mqttClient.disconnect();
 			this.mqttClient = null;
+			this.mqttConnected = false;
 		} catch (e) {}
 	}
 }
 
 AppModel.prototype.connectToMQTTServer = function(mainTopicName, onSuccess) {
 	//store info for later use
-	localStorage["nickname"] = this.nickname;
-	localStorage["place"] = this.place;
-	localStorage["selfInfo"] = this.selfInfo;
+	localStorage["nickname"] = this.nickname();
+	localStorage["place"] = this.place();
+	localStorage["selfInfo"] = this.selfInfo();
 
 	//connect to mqtt server
+	var _self = this;
 	this.disconnectFromMQTTServer();
-	this.mqttClient = new Messaging.Client("gostutz.com", 61623, "clientid");
+	this.mqttClient = new Messaging.Client("gostutz.com", 61623, new Date().getTime()+"");
 	var options = {
 		timeout : 10,
 		onSuccess : function() {
-			console.log("Subscribing to '"+mainTopicName+"'...");
-			this.mqttClient.subscribe(mainTopicName);
-			if(onSuccess) {
-				onSuccess();
+			try {
+				_self.mqttConnected = true;
+				console.log("Subscribing to '"+mainTopicName+"'...");
+				_self.mqttClient.subscribe(mainTopicName);
+				if(onSuccess) {
+					onSuccess.call();
+				}
+				_self.showPessoas();
+			} catch (e) {
+				console.log(e);
 			}
 		},
 		onFailure : function(responseObject) {
-			if (responseObject.errorCode != 0) {
-				console.log("Failure:"+responseObject.errorMessage);
-			}
+			_self.mqttConnected = false;
+			console.log("Failure:"+responseObject.errorCode+" "+responseObject.errorMessage);
 		},
 		userName: "user",
 		password: "user",
 		useSSL: false
 	};
+	var _self = this;
 	this.mqttClient.onMessageArrived = function(message) {
-		console.log("Message arrived: " + message.payloadString);
-		stickersInfo = JSON.parse(message.payloadString);
-		this.receivedStickersInfo.push(stickersInfo);
-		this.recalculateStickersInfoRanking();
+		try {
+			console.log("Message arrived: " + message.payloadString);
+			stickersInfo = JSON.parse(message.payloadString);
+			stickersInfo.timeElapsedInfo = ko.observable("Hï¿½ poucos segundos");
+			
+			//remove previous results from peer
+			var index = -1;
+			for(var i=0; i<_self.receivedStickersInfo.length; i++) {
+				if(stickersInfo.clientUUID==_self.receivedStickersInfo[i].clientUUID) {
+					index = i;
+				}
+			}
+			
+			if(index > -1) {
+				_self.receivedStickersInfo.splice(index,1);
+			}
+			
+			_self.receivedStickersInfo.push(stickersInfo);
+			_self.recalculateStickersInfoRanking();
+		} catch(e) {
+			console.log(e);
+		}
 	};
 	this.onConnectionLost = function(message) {
-		if (message.errorCode !== 0) {
-			console.log("Connection lost:"+responseObject.errorMessage);
-		}
+		console.log("Connection lost:"+message.errorCode + " " +responseObject.errorMessage);
 	};
 
 	console.log("Connecting to MQTT server...");
@@ -134,45 +182,54 @@ AppModel.prototype.publishToMQTTServer = function(topicName, payload) {
 //perform balance line matches and ranking seeking for the best people that could exchange stickers with the user
 AppModel.prototype.recalculateStickersInfoRanking = function() {
 	if(this.receivedStickersInfo!=null && this.neededStickersModel!=null && this.availableStickersModel!=null) {
+
 		//look for stickers that the current user needs and are available from others
 		for(var i=0; i<this.receivedStickersInfo.length; i++) {
 			var receivedStickerInfo = this.receivedStickersInfo[i];
-			receivedStickerInfo.stickersForReceivingFromPeer = ko.observableArray();
-			receivedStickerInfo.stickersForGivingToPeer = ko.observableArray();
+			receivedStickerInfo.stickersForReceivingFromPeer = new Array();
+			receivedStickerInfo.stickersForGivingToPeer = new Array();
 	
-			//find stickers that the current user could get from peers
-			for(var j=0; i<this.neededStickersModel.items.length; i++) {
+			//find stickers that the current user could get from other peers
+			for(var j=0; j<this.neededStickersModel.items.length; j++) {
 				var neededStickerByUser = this.neededStickersModel.items[j];
 		
 				for(var k=0; k<receivedStickerInfo.availableStickers.length; k++) {
-					var availableStickerFromPeer = this.receivedStickerInfo.availableStickers[j];
+					var availableStickerFromPeer = receivedStickerInfo.availableStickers[k];
 					if(neededStickerByUser.number==availableStickerFromPeer.number && neededStickerByUser.selected()) {
-						this.receivedStickerInfo.stickersForReceivingFromPeer.push({number: availableStickerFromPeer.number, selected:true});
+						receivedStickerInfo.stickersForReceivingFromPeer.push({number: availableStickerFromPeer.number, selected:true});
 					}
 				}
 			}
-	
+
 			//find stickers that the current user could give to other peers
-			for(var j=0; i<this.availableStickersModel.items.length; i++) {
+			for(var j=0; j<this.availableStickersModel.items.length; j++) {
 				var availableStickerByUser = this.availableStickersModel.items[j];
 		
-				for(var k=0; k<this.receivedStickersInfo.neededStickers.length; k++) {
-					var neededStickerFromPeer = this.receivedStickersInfo.neededStickers[j];
+				for(var k=0; k<receivedStickerInfo.neededStickers.length; k++) {
+					var neededStickerFromPeer = receivedStickerInfo.neededStickers[k];
 					if(availableStickerByUser.number==neededStickerFromPeer.number && availableStickerByUser.selected()) {
-						this.receivedStickerInfo.stickersForGivingToPeer.push({number: availableStickerByUser.number, selected:true});
+						receivedStickerInfo.stickersForGivingToPeer.push({number: availableStickerByUser.number, selected:true});
 					}
 				}
 			}
 		}
 
 		//order ranking by best matches
-		this.receivedStickersInfo.sort(function(left,right) {
-			if(left.stickersForReceivingFromPeer.length > right.stickersForReceivingFromPeer.length) {
-				return 1;
-			} else {
-				return -1;
+		if(this.receivedStickersInfo.length>0) {
+			this.receivedStickersInfo.sort(function(left,right) {
+				if(left.stickersForReceivingFromPeer.length > right.stickersForReceivingFromPeer.length) {
+					return 1;
+				} else {
+					return -1;
+				}
+			});
+			
+			//update screen items
+			this.receivedStickersScreen.removeAll();
+			for(var i=0; i<this.receivedStickersInfo.length; i++) {
+				this.receivedStickersScreen.push(this.receivedStickersInfo[i]);
 			}
-		});
+		}
 	}
 
 }
@@ -192,12 +249,13 @@ AppModel.prototype.showResultados = function() {
 	}
 }
 AppModel.prototype.showPessoas = function() {
-	showSection("lista-matches");
-	document.getElementById("pessoas").style.display = "none";
-	document.getElementById("arena-troca").style.display = "block";
+	this.showSection("lista-matches");
+	document.getElementById("pessoas").style.display = "block";
+	document.getElementById("arena-troca").style.display = "none";
 }
-AppModel.prototype.showArenaTroca = function() {
-	showSection("lista-matches");
+AppModel.prototype.showArenaTroca = function(stickerInfo) {
+	this.selectedReceivedStickersInfo = stickerInfo
+	this.showSection("lista-matches");
 	document.getElementById("pessoas").style.display = "none";
 	document.getElementById("arena-troca").style.display = "block";
 }
@@ -210,7 +268,6 @@ AppModel.prototype.showArenaTroca = function() {
 /** SELECTABLE ITEMS MODEL * */
 function SelectableItemsModel(storageName0, defaultItems) {
 	var _self = this;
-	var _observable = ko.observable(0);
 	_self.items = new Array();
 	_self._observable = ko.observable(0);
 	_self._dirty = false;
