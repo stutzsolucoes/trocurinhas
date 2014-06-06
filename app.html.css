@@ -6,6 +6,9 @@ html {
 	font-weight: 400;
 	color: #444;
 }
+body {
+	background: #FBFBFB;
+}
 article {
 	position: relative;
 	top: 37px;
@@ -21,7 +24,7 @@ footer.app-footer {
 	border-width: 0px; 
 	border-style: solid; 
 	border-color: white;
-	background: #F8F8F8;
+	background: white;
 	position: fixed;
 	z-index: 999;
 	width: 100%;
@@ -29,7 +32,10 @@ footer.app-footer {
 header.app-header {
 	border-bottom-width: 1px; 
 	top: 0%;
-	height: 37px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	-moz-box-shadow: 0px 2px 4px -3px #333;
+	-webkit-box-shadow: 0px 2px 4px -3px #333;
 	box-shadow: 0px 2px 4px -3px #333;
 }
 header.app-header .left-button,
@@ -72,6 +78,8 @@ header.app-header .right-button span.confirm {
 footer.app-footer {
 	border-top-width: 1px; 
 	bottom: 0%;
+	-moz-box-shadow: 0px -2px 4px -3px #333;
+	-webkit-box-shadow: 0px -2px 4px -3px #333;
 	box-shadow: 0px -2px 4px -3px #333;
 }
 header h1 {
@@ -99,6 +107,8 @@ footer.app-footer nav ul li{
 	padding-top: 15px;
 	padding-bottom: 15px;	
 	font-size: 0.73rem;
+	-moz-text-shadow: 1px 1px 1px white;
+	-webkit-text-shadow: 1px 1px 1px white;
 	text-shadow: 1px 1px 1px white;
 	text-transform: capitalize;
 	color: #999;
@@ -199,28 +209,58 @@ footer.app-footer nav ul li.active div{
 	color: white;
 }
 
-.figurinha {
+
+#figurinhas-procuradas .figurinha,
+#figurinhas-repetidas .figurinha {
 	float: left; 
 	margin: 7px;
-		width: 80px;
+	width: 80px;
+	border: 1px solid #EAEAEA;
 }
-.figurinha button{
-	height: 80px;
+#figurinhas-procuradas .figurinha:hover,
+#figurinhas-repetidas .figurinha:hover {
+	border-color: gray;
+}
+#figurinhas-procuradas .figurinha button,
+#figurinhas-repetidas .figurinha button{
+	height: auto;
 	width: 100%;
 	text-align: center;
-	color: black;
-	background-color: rgba(172, 161, 161, .4);
-	opacity: .3;
-	border: 2px solid white;
-	box-shadow: 0px 1px 6px 0px black;
-	font-size: 1.67em;
+	border: 4px solid white;	
+	font-size: 1.21em;
+	font-weight: 300;
+	font-family: Arimo;
+	padding-top: 40px;
+	padding-bottom: 5px;
+	-moz-text-shadow: 1px 1px 1px white;
+	-webkit-text-shadow: 1px 1px 1px white;
+	text-shadow: 1px 1px 1px white;
+	-webkit-box-shadow: 0px 2px 6px -3px #999;
+	-moz-box-shadow: 0px 2px 6px -3px #999;
+	box-shadow: 0px 2px 6px -3px #999;
 }
 
-.figurinha button.selected
-{
-	opacity: 1;
-	background: #4B893F;
+#figurinhas-procuradas .figurinha button {
+	color: #A75353;
+	background-color: #FAFAFA;
+}
+#figurinhas-repetidas .figurinha button{
+	color: #8BA284;
+	background-color: #FAFAFA;
+}
+#figurinhas-procuradas .figurinha button.selected {
 	color: white;
+	background-color: #A75353;
+	-moz-text-shadow: 1px 1px 1px #A75353;
+	-webkit-text-shadow: 1px 1px 1px #A75353;
+	text-shadow: 1px 1px 1px #A75353;
+}
+#figurinhas-repetidas .figurinha button.selected {
+	color: white;
+	background: #8BA284;	
+	-moz-text-shadow: 1px 1px 1px #8BA284;
+	-webkit-text-shadow: 1px 1px 1px #8BA284;
+	text-shadow: 1px 1px 1px #8BA284;
 }
 .listagem:after,
 .figurinhas-container:after {
