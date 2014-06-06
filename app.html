@@ -103,9 +103,8 @@
       <section data-bind="with: $root.viewConnect, visible: currentState().view == $root.viewConnect">
 
         <header>
-          <h1>Olá, conecte-se para encontrar pessoas e trocar as figurinhas</h1>
           <aside>
-            Não precisa de cadastro! Apenas preencha o formulário abaixo e o aplicativo listará pessoas que estejam no bairro nesse momento querendo trocar figurinhas <a class="saiba mais">?</a>
+            Não precisa de cadastro! Apenas preencha o formulário abaixo e o aplicativo listará pessoas que estejam no bairro nesse momento querendo trocar figurinhas
           </aside>
         </header> 
 
@@ -126,7 +125,7 @@
             <div class="input-subtitle">Ex.: Boné vermelho</div>
           </div>
 
-          <input type="submit" value="Conectar" data-bind="click: $root.connectAndPublishSelfInfo" />
+          <button data-bind="click: $root.connectAndPublishSelfInfo">Conectar</button>
 
         </form>
 
