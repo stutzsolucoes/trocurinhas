@@ -18,7 +18,6 @@ article.fullscreen {
 }
 header.app-header,
 footer.app-footer {
-	padding: 5px;
 	border-width: 0px; 
 	border-style: solid; 
 	border-color: white;
@@ -47,6 +46,8 @@ header.app-header .right-button{
 }
 header.app-header:after {
 	clear: both;
+	content:"";
+	display:table;
 }
 
 header.app-header .left-button,
@@ -86,12 +87,17 @@ header.app-header h1 {
 	font-family: 'Arimo';
 }
 
+footer.app-footer nav ul:after {
+	clear: both;
+	content:"";
+	display:table;
+}
 footer.app-footer nav ul li{
 	float:left;
 	width: 32%;
 	text-align: center;
-	padding-top: 5px;
-	padding-bottom: 5px;	
+	padding-top: 15px;
+	padding-bottom: 15px;	
 	font-size: 0.73rem;
 	text-shadow: 1px 1px 1px white;
 	text-transform: capitalize;
@@ -117,9 +123,6 @@ footer.app-footer nav ul li.active div{
 	color: #F4D02A;
 }
 
-footer.app-footer nav ul:after {
-	clear:both;
-}
 /** FIM DO ESTILO TEMPLATE PADRAO **/
 
 /* TELA trocar-agora */
@@ -144,9 +147,6 @@ footer.app-footer nav ul:after {
 }
 #trocar-agora section.pessoas ul li div.grupo:after {
 	clear: both;
-	display:table;
-}
-#trocar-agora section.pessoas ul li div.grupo:after {
 	content:"";
 	display:table;
 }
