@@ -7,7 +7,7 @@ html {
 	color: #444;
 }
 body {
-	background: #FBFBFB;
+	background: #F3F3F3;
 }
 article {
 	position: relative;
@@ -213,8 +213,10 @@ footer.app-footer nav ul li.active div{
 #figurinhas-procuradas .figurinha,
 #figurinhas-repetidas .figurinha {
 	float: left; 
-	margin: 7px;
-	width: 80px;
+	margin: 5px;
+	width: 30%;
+	min-width: 80px;
+	max-width: 100px;
 	border: 1px solid #EAEAEA;
 }
 #figurinhas-procuradas .figurinha:hover,
