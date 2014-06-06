@@ -35,11 +35,7 @@ header.app-header {
 }
 header.app-header .left-button,
 header.app-header .right-button {
-	width: 25%;
-}
-header.app-header h1 {
-	width: 50%;
-	text-align: center;
+	width: 20%;
 }
 header.app-header .left-button,
 header.app-header h1{
@@ -82,9 +78,12 @@ header h1 {
 }
 header.app-header h1 {
 	text-align: center;
-	font-size: 1.0em;
+	font-size: 1.2em;
 	line-height: 1.5em;
-	color: #666;
+	width: 56%;
+	text-align: center;
+	color: #111;
+	font-family: 'Arimo';
 }
 
 footer.app-footer nav ul li{
@@ -198,4 +197,34 @@ footer.app-footer nav ul:after {
 	-webkit-border-radius: -1px;
 	border-radius: 36px;
 	color: white;
+}
+
+.figurinha {
+	float: left; 
+	margin: 7px;
+		width: 80px;
+}
+.figurinha button{
+	height: 80px;
+	width: 100%;
+	text-align: center;
+	color: black;
+	background-color: rgba(172, 161, 161, .4);
+	opacity: .3;
+	border: 2px solid white;
+	box-shadow: 0px 1px 6px 0px black;
+	font-size: 1.67em;
+}
+
+.figurinha button.selected
+{
+	opacity: 1;
+	background: #4B893F;
+	color: white;
+}
+.listagem:after,
+.figurinhas-container:after {
+	clear: both;
+	content:"";
+	display:table;
 }

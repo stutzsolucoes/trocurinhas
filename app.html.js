@@ -264,6 +264,7 @@ function AppViewModel() {
 
 	//checks if it is first time running the App
 	_self.firstTimeRunning = ko.observable(localStorage["firstTimeFlag"] == undefined ? true : false);
+	_self.firstTimeRunning(false); //
 	if (_self.firstTimeRunning()) {
 		_self.currentInteraction = ko.observable(_self.interactionWelcome);
 	}else{

@@ -7,8 +7,10 @@
 	<title>Trocurinhas</title>
 	<meta name="description" content="Trocurinhas">
 	<meta name="author" content="Stutz Soluções">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/reset.css">
 
 	<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400|Cabin+Condensed:400,700|Arimo:400,700' rel='stylesheet' type='text/css'>
 
@@ -49,15 +51,15 @@
           <aside>Indique abaixo quais figurinhas <strong>faltam para você</strong> completar o álbum</aside>
         </header>
 
-        <div data-bind="foreach: items">
-          <div style="float: left; margin-right: 10px">
-            <button class="ui-shadow ui-btn ui-corner-all"
-              style="width: 80px; color: yellow"
+        <div class="figurinhas-container" data-bind="foreach: items">
+          <div class="figurinha">
+            <button
               data-bind="text: number, 
                       click: $parent.toggleSelection,
-                      style: { backgroundColor: selected() ? 'green' : '#999999' }"></button>
+                      style: { backgroundColor: selected() ? 'green' : '' }"></button>
           </div>
         </div>
+        
       </section>
 
     </article>
@@ -65,19 +67,16 @@
     <article id="figurinhas-procuradas" data-bind="visible: currentInteraction() == interactionNeededStickers, with: interactionNeededStickers">
 
       <section class="listagem" data-bind="with: $root.viewNeededStickers, visible: currentState().view == $root.viewNeededStickers">
-        <header>
-          <aside>Indique abaixo quais figurinhas <strong>faltam para você</strong> completar o álbum</aside>
-        </header>
 
-        <div data-bind="foreach: items">
-          <div style="float: left; margin-right: 10px">
-            <button class="ui-shadow ui-btn ui-corner-all"
-              style="width: 80px; color: yellow"
+        <div class="figurinhas-container" data-bind="foreach: items">
+          <div class="figurinha">
+            <button
               data-bind="text: number, 
                       click: $parent.toggleSelection,
-                      style: { backgroundColor: selected() ? 'green' : '#999999' }"></button>
+                      css: { selected: selected() }"></button>
           </div>
         </div>
+        
       </section>
 
     </article>
@@ -85,20 +84,16 @@
     <article id="figurinhas-repetidas" data-bind="visible: currentInteraction() == interactionAvailableStickers, with: interactionAvailableStickers">
 
       <section class="listagem" data-bind="with: $root.viewAvailableStickers, visible: currentState().view == $root.viewAvailableStickers">
-        <header>
-          <h1>Figurinhas repetidas</h1>
-          <aside>Indique abaixo quais figurinhas <strong>você tem repetida</strong> e quer trocar</aside>
-        </header>
 
-        <div data-bind="foreach: items">
-          <div style="float: left; margin-right: 10px">
-            <button class="ui-shadow ui-btn ui-corner-all"
-              style="width: 80px; color: yellow"
+        <div class="figurinhas-container" data-bind="foreach: items">
+          <div class="figurinha">
+            <button
               data-bind="text: number, 
                       click: $parent.toggleSelection,
-                      style: { backgroundColor: selected() ? 'green' : '#999999' }"></button>
+                      style: { backgroundColor: selected() ? 'green' : '' }"></button>
           </div>
         </div>
+
       </section>
 
     </article>
