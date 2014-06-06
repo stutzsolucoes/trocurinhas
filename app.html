@@ -34,7 +34,7 @@
 	
      <header class="app-header" data-bind="with: currentInteraction().currentState">
       <div class="left-button">
-        <span class="cancel" data-bind="text: cancelButtonText, click: $parent.cancelAction, visible: cancelButtonText != null"/>
+        <span class="cancel" data-bind="text: cancelButtonText, click: $root.currentInteraction().cancelAction, visible: cancelButtonText != null"/>
       </div>
       <h1 id="section-title" data-bind="text: view.pageTitle"></h1>
       <div class="right-button">

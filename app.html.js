@@ -39,22 +39,31 @@ InteractionModel = function(globalViewModel, interactionId, defaultState) {
 		_self.transitions.push(new InteractionModelTransition(fromState, toState, trigger));
 	}
 	_self.confirmAction = function() {
-		foundState = $(_self.transitions).filter(function() {
+		foundTransition = $(_self.transitions).filter(function() {
 			return (this.fromState.view==_self.currentState().view && this.trigger=="confirm");
 		});
-		if (foundState.length!=1) {
+		if (foundTransition.length!=1) {
 			alert("erro na montagem da maquina de estados da interação");
 		}
-		_self.currentState(foundState[0]);
+		if (foundTransition[0].toState!=null) { 
+			_self.currentState(foundTransition[0].toState);
+		}else{ //if found a transititon but the 'toState' is null, then it changes the interaction to the AppModel default interaction
+			_self.parentViewModel.openDefaultInteraction();
+		}
+		
 	}
 	_self.cancelAction = function() {
-		foundState = $(_self.transitions).filter(function() {
+		foundTransition = $(_self.transitions).filter(function() {
 			return (this.fromState.view==_self.currentState().view && this.trigger=="cancel");
 		});
-		if (foundState.length!=1) {
+		if (foundTransition.length!=1) {
 			alert("erro na montagem da maquina de estados da interação");
 		}
-		_self.currentState(foundState[0]);	
+		if (foundTransition[0].toState!=null) { 
+			_self.currentState(foundTransition[0].toState);
+		}else{ //if found a transititon but the 'toState' is null, then it changes the interaction to the AppModel default interaction
+			_self.parentViewModel.openDefaultInteraction();
+		}
 	}
 }
 
@@ -218,6 +227,7 @@ function AppViewModel() {
 	_self.interactionWelcome = new InteractionModel(_self, 1, selectNeededStickersState);	
 	_self.interactionWelcome.addTransition(selectNeededStickersState, selectAvailableStickersState, "confirm");
 	_self.interactionWelcome.addTransition(selectAvailableStickersState, selectNeededStickersState, "cancel");
+	_self.interactionWelcome.addTransition(selectAvailableStickersState, null, "concluir");
 
 	//#2 - checking the stickers needed to complete the collection allowing to mark the ones got to remove them from the list
 	selectNeededStickersStateNoAction = new InteractionModelState(_self.viewNeededStickers);
@@ -242,6 +252,10 @@ function AppViewModel() {
 		_self.currentInteraction = ko.observable(_self.interactionWelcome);
 	}else{
 		_self.currentInteraction = ko.observable(_self.interactionNeededStickers);
+	}
+
+	_self.openDefaultInteraction = function() {
+		_self.currentInteraction(_self.interactionNeededStickers);
 	}
 
 	//MQTT Stuff
@@ -336,6 +350,7 @@ AppViewModel.prototype.disconnectFromMQTTServer = function() {
  		} catch (e) {
  			console.log(e);
  		}
+ 	}
 }
 
 AppViewModel.prototype.connectToMQTTServer = function(mainTopicName, onSuccess) {
