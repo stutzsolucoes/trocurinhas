@@ -1,7 +1,171 @@
-/** MODEL VIEW VIEWMODEL * */
-// constructor
-function AppModel() {
-	// initialize needed and available stickers model
+/*** utils ***/
+/** GUID GENERATOR * */
+var generateUUID = (function() {
+	function s4() {
+		return Math.floor((1 + Math.random()) * 0x10000).toString(16)
+				.substring(1);
+	}
+	return function() {
+		return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4()
+				+ s4() + s4();
+	};
+})();
+/*** /END utils ***/
+
+//***** VIEW VIEWMODELS ******//
+/** -- INTERNAL VIEW MODELS -- **/
+//sections view interaction
+InteractionModelState = function(view, cancelButtonText, confirmButtonText) {
+	this.view = view;
+	this.cancelButtonText = typeof cancelButtonText !== 'undefined' ? cancelButtonText : null;
+	this.confirmButtonText = typeof confirmButtonText !== 'undefined' ? confirmButtonText : null;	
+}
+InteractionModelTransition = function(fromState, toState, trigger) {
+	this.fromState = fromState;
+	this.toState = toState;
+	this.trigger = trigger;
+}
+InteractionModel = function(globalViewModel, interactionId, defaultState) {		
+	var _self = this;
+
+	_self.parentViewModel = globalViewModel;
+	_self.id = interactionId;
+
+	//The app presents one view (state) at a time. Just initializing; it will be handled by interaction models
+	_self.currentState = ko.observable(defaultState); 
+
+	_self.transitions = new Array();
+	_self.addTransition = function(fromState, toState, trigger) {
+		_self.transitions.push(new InteractionModelTransition(fromState, toState, trigger));
+	}
+	_self.confirmAction = function() {
+		foundState = $(_self.transitions).filter(function() {
+			return (this.fromState.view==_self.currentState().view && this.trigger=="confirm");
+		});
+		if (foundState.length!=1) {
+			alert("erro na montagem da maquina de estados da interação");
+		}
+		_self.currentState(foundState[0]);
+	}
+	_self.cancelAction = function() {
+		foundState = $(_self.transitions).filter(function() {
+			return (this.fromState.view==_self.currentState().view && this.trigger=="cancel");
+		});
+		if (foundState.length!=1) {
+			alert("erro na montagem da maquina de estados da interação");
+		}
+		_self.currentState(foundState[0]);	
+	}
+}
+
+/** SELECTABLE ITEMS MODEL - Needed and Available Stickers * */
+function SelectableItemsViewModel(viewId, viewPageTitle, storageName0, defaultItems) {
+	var _self = this;
+
+	_self.id = viewId;
+	_self.pageTitle = viewPageTitle;
+
+	var _observable = ko.observable(0);
+	_self.items = new ko.observableArray();
+	_self._observable = ko.observable(0);
+	_self._dirty = false;
+	storageName = storageName0;
+
+	// recover previous selected state from storage
+	var _plainItems = defaultItems;
+	if(storageName!=null) {
+		var _storedJson = localStorage[storageName + "-items"];
+		if (_storedJson != null) {
+			var resItems = JSON.parse(_storedJson);
+			if (resItems != null && resItems.length > 0) {
+				_plainItems = resItems;
+			}
+		}
+	}
+
+	// transform plain items array to observable
+	for ( var i = 0; i < _plainItems.length; i++) {
+		var oi = SelectableItemsViewModel._createObservableItem(
+				_plainItems[i].number, _plainItems[i].selected, this);
+		_self.items.push(oi);
+	}
+
+	// store changes locally and notify peers from time to time when something
+	// has changed
+	window.setInterval(function() {
+		if (_self._dirty) {
+			// store changes locally
+			var recItems = new Array();
+			for ( var i = 0; i < _self.items.length; i++) {
+				recItems.push({
+					number : _self.items[i].number,
+					selected : _self.items[i].selected()
+				});
+			}
+			if(storageName!=null) {
+				localStorage[storageName + "-items"] = JSON.stringify(recItems);
+			}
+
+			// notify listeners about changes
+			_self._observable(new Date().getTime());
+
+			_self._dirty = false;
+		}
+	}, 3000);
+
+}
+
+SelectableItemsViewModel.prototype.subscribeToChanges = function(callbackFunction) {
+	this._observable.subscribe(callbackFunction);
+};
+
+SelectableItemsViewModel.prototype.toggleSelection = function(item) {
+	item.selected(!item.selected());
+};
+
+SelectableItemsViewModel._createObservableItem = function(itemNumber, itemSelected,
+		viewModel) {
+	var observableSelected = ko.observable(itemSelected);
+
+	// store changes as they are done
+	observableSelected.subscribe(function(newValue) {
+		viewModel._dirty = true;
+	});
+
+	return {
+		number : itemNumber,
+		selected : observableSelected
+	};
+};
+
+/** CONNECT VIEW MODEL * */
+function ConnectViewModel(viewId, viewPageTitle) {
+	var _self = this;
+	_self.id = viewId;
+	_self.pageTitle = viewPageTitle;
+}
+
+/** NEAR PEOPLE TO EXCHANGE VIEW MODEL * */
+function NearPeopleViewModel(viewId, viewPageTitle) {
+	var _self = this;
+	_self.id = viewId;
+	_self.pageTitle = viewPageTitle;
+}
+
+/** EXCHANGING STICKERS VIEW MODEL * */
+function ExchangingArenaViewModel(viewId, viewPageTitle) {
+	var _self = this;
+	_self.id = viewId;
+	_self.pageTitle = viewPageTitle;
+}
+
+/** end of -- INTERNAL VIEW MODELS -- **/
+
+/** -- GLOBAL VIEW MODEL -- **/
+function AppViewModel() {
+
+	var _self = this;
+
 	var _defaultItems1 = new Array();
 	for ( var i = 1; i <= 600; i++) {
 		_defaultItems1.push({
@@ -19,62 +183,108 @@ function AppModel() {
 	}
 
 	// create and store an uid for this application for later reuse
-	this.clientUUID = localStorage["clientUUID"];
-	if (this.clientUUID == null) {
-		this.clientUUID = generateUUID();
-		localStorage["clientUUID"] = this.clientUUID;
+	_self.clientUUID = localStorage["clientUUID"];
+	if (_self.clientUUID == null) {
+		_self.clientUUID = generateUUID();
+		localStorage["clientUUID"] = _self.clientUUID;
+	}
+	
+	//views ~ <section>
+	//#1 - needed stickers
+	_self.viewNeededStickers = new SelectableItemsViewModel(1, "Figurinhas Faltando", "needed-stickers", _defaultItems1);
+	_self.viewNeededStickers.subscribeToChanges(function() {_self.publishStickersInfoToServer()});
+	_self.viewNeededStickers.subscribeToChanges(function() {_self.recalculateStickersInfoRanking()});
+
+	//#2 - available stickers
+	_self.viewAvailableStickers = new SelectableItemsViewModel(2, "Figurinhas Repetidas", "available-stickers", _defaultItems2);
+	_self.viewAvailableStickers.subscribeToChanges(function() {_self.publishStickersInfoToServer()});
+	_self.viewAvailableStickers.subscribeToChanges(function() {_self.recalculateStickersInfoRanking()});
+
+	//#3 - connect form
+	_self.viewConnect = new ConnectViewModel(4, "Conectando-se");
+
+	//#4 - list with people in the same neighborhood
+	_self.viewNearPeople = new NearPeopleViewModel(5, "Pessoas próximas");
+
+	//#5 - selecting stickers you want and you are giving
+	_self.viewExchangingArena = new ExchangingArenaViewModel(6, "Trocando Figurinhas");
+
+	// /END OF views ~ <section>
+
+	//section interaction ~ <article>
+	//#1 - first time the app is loaded interaction
+	selectNeededStickersState = new InteractionModelState(_self.viewNeededStickers, null, "avançar");	
+	selectAvailableStickersState = new InteractionModelState(_self.viewAvailableStickers, "voltar", "concluir");
+	_self.interactionWelcome = new InteractionModel(_self, 1, selectNeededStickersState);	
+	_self.interactionWelcome.addTransition(selectNeededStickersState, selectAvailableStickersState, "confirm");
+	_self.interactionWelcome.addTransition(selectAvailableStickersState, selectNeededStickersState, "cancel");
+
+	//#2 - checking the stickers needed to complete the collection allowing to mark the ones got to remove them from the list
+	selectNeededStickersStateNoAction = new InteractionModelState(_self.viewNeededStickers);
+	_self.interactionNeededStickers = new InteractionModel(_self, 2, selectNeededStickersStateNoAction);
+
+	//#3 - checking the stickers that are available to exchange allowing to mark the ones that are no available anymore to remove them from the list
+	selectAvailableStickersStateNoAction = new InteractionModelState(_self.viewAvailableStickers);
+	_self.interactionAvailableStickers = new InteractionModel(_self, 3, selectAvailableStickersStateNoAction);
+
+	//#4 - connect (if not), locate people, choose one and exchange the stickers by marking the ones the user will got from the other peer and the ones the user is giving
+	connectingState = new InteractionModelState(_self.viewConnect);
+	chosingPeerState = new InteractionModelState(_self.viewNearPeople);
+	exchangingState = new InteractionModelState(_self.viewExchangingArena);
+	_self.interactionExchangeNow = new InteractionModel(_self, 4, connectingState);
+	_self.interactionExchangeNow.addTransition(connectingState, chosingPeerState, "connect");
+	_self.interactionExchangeNow.addTransition(chosingPeerState, exchangingState, "exchange");
+	_self.interactionExchangeNow.addTransition(exchangingState, chosingPeerState, "cancelExchange");
+
+	//checks if it is first time running the App
+	_self.firstTimeRunning = ko.observable(localStorage["firstTimeFlag"] == 1 ? true : false);
+	if (!_self.firstTimeRunning()) {
+		_self.currentInteraction = ko.observable(_self.interactionWelcome);
+	}else{
+		_self.currentInteraction = ko.observable(_self.interactionNeededStickers);
 	}
 
-	var _self = this;
-	this.neededStickersModel = new SelectableItemsModel("needed-stickers", _defaultItems1);
-	this.neededStickersModel.subscribeToChanges(function() {_self.publishStickersInfoToServer()});
-	this.neededStickersModel.subscribeToChanges(function() {_self.recalculateStickersInfoRanking()});
-	
-	this.availableStickersModel = new SelectableItemsModel("available-stickers", _defaultItems2);
-	this.availableStickersModel.subscribeToChanges(function() {_self.publishStickersInfoToServer()});
-	this.availableStickersModel.subscribeToChanges(function() {_self.recalculateStickersInfoRanking()});
+	//MQTT Stuff
+	_self.mqttClient = null;
+	_self.mqttConnected = false;
+	_self.mainTopicName = "/main/notclassified";
 
-	this.mqttClient = null;
-	this.mqttConnected = false;
-	this.mainTopicName = "/main/notclassified";
-
-	this.nickname = ko.observable(localStorage["nickname"]);
-	this.place = ko.observable(localStorage["place"]);
-	this.selfInfo = ko.observable(localStorage["selfInfo"]);
+	_self.nickname = localStorage["nickname"];
+	_self.place = localStorage["place"];
+	_self.selfInfo = localStorage["selfInfo"];
 
 	this.receivedStickersInfo = new Array();
 	this.receivedStickersScreen = ko.observableArray();
-	
+
 	this.selectedReceivedStickersInfo = null;
-	
+
 	//update elapsed time informations
-	var _self = this;
 	window.setInterval(function() {
 		//add time messages
 		for(var i=0; i<_self.receivedStickersInfo.length; i++) {
-			var stickersInfo = _self.receivedStickersInfo[i];
+ 			var stickersInfo = _self.receivedStickersInfo[i];
 			var info = "";
 			var timeElapsed = new Date().getTime() - stickersInfo.time;
 			if(timeElapsed < 60000) {
-				info = "H� poucos segundos";
+				info = "Há poucos segundos";
 			} else if(timeElapsed < 3600000) {
-				info = "H� "+ Math.ceil(timeElapsed/60000) +" minutos";
+				info = "Há "+ Math.ceil(timeElapsed/60000) +" minutos";
 			} else if(timeElapsed >= 3600000) {
-				info = "H� "+ Math.ceil(timeElapsed/3600000) +" horas";
+				info = "Há "+ Math.ceil(timeElapsed/3600000) +" horas";
 			}
 			stickersInfo.timeElapsedInfo(info);
 		}
 	}, 5000);
 }
 
-AppModel.prototype.connectAndPublishSelfInfo = function() {
+AppViewModel.prototype.connectAndPublishSelfInfo = function() {
 	var _self = this;
 	this.connectToMQTTServer(this.mainTopicName, function() {
 		_self.publishStickersInfoToServer();
 	});
 }
 
-AppModel.prototype.publishStickersInfoToServer = function() {
+AppViewModel.prototype.publishStickersInfoToServer = function() {
 	if(this.mqttConnected) {
 		console.log("Preparing stickers info...");
 		var _self = this;
@@ -84,8 +294,8 @@ AppModel.prototype.publishStickersInfoToServer = function() {
 			nickname: _self.nickname.peek(),
 			place: _self.place.peek(),
 			selfInfo: _self.selfInfo.peek(),
-			neededStickers: AppModel.getOnlySelectedItems(_self.neededStickersModel.items),
-			availableStickers: AppModel.getOnlySelectedItems(_self.availableStickersModel.items)
+			neededStickers: AppViewModel.getOnlySelectedItems(_self.neededStickersModel.items),
+			availableStickers: AppViewModel.getOnlySelectedItems(_self.availableStickersModel.items)
 			//stickersForReceivingFromPeer: Array - used later during ranking calculations
 			//stickersForGivingToPeer: Array - used later during ranking calculations
 		}
@@ -95,7 +305,7 @@ AppModel.prototype.publishStickersInfoToServer = function() {
 		console.log("Not connected to server");
 	}
 }
-AppModel.getOnlySelectedItems = function(items) {
+AppViewModel.getOnlySelectedItems = function(items) {
 	var result = new Array();
 	for(var i=0; i<items.length; i++) {
 		if(items[i].selected()) {
@@ -105,7 +315,17 @@ AppModel.getOnlySelectedItems = function(items) {
 	return result;
 }
 
-AppModel.prototype.disconnectFromMQTTServer = function() {
+AppViewModel.getOnlySelectedItems = function(items) {
+	var result = new Array();
+	for(var i=0; i<items.length; i++) {
+		if(items[i].selected()) {
+			result.push(items[i]);
+		}
+	}
+	return result;
+}
+
+AppViewModel.prototype.disconnectFromMQTTServer = function() {
 	if(this.mqttClient!=null) {
 		console.log("Disconnecting from MQTT server...");
 		try {
@@ -113,13 +333,12 @@ AppModel.prototype.disconnectFromMQTTServer = function() {
 			this.mqttClient = null;
 			this.mqttConnected = false;
 			this.showResultados();
-		} catch (e) {
-			console.log(e);
-		}
-	}
+ 		} catch (e) {
+ 			console.log(e);
+ 		}
 }
 
-AppModel.prototype.connectToMQTTServer = function(mainTopicName, onSuccess) {
+AppViewModel.prototype.connectToMQTTServer = function(mainTopicName, onSuccess) {
 	//store info for later use
 	localStorage["nickname"] = this.nickname();
 	localStorage["place"] = this.place();
@@ -157,7 +376,7 @@ AppModel.prototype.connectToMQTTServer = function(mainTopicName, onSuccess) {
 		try {
 			console.log("Message arrived: " + message.payloadString);
 			stickersInfo = JSON.parse(message.payloadString);
-			stickersInfo.timeElapsedInfo = ko.observable("H� poucos segundos");
+			stickersInfo.timeElapsedInfo = ko.observable("Há poucos segundos");
 			
 			//remove previous results from peer
 			var index = -1;
@@ -184,14 +403,14 @@ AppModel.prototype.connectToMQTTServer = function(mainTopicName, onSuccess) {
 	console.log("Connecting to MQTT server...");
 	this.mqttClient.connect(options);
 }
-AppModel.prototype.publishToMQTTServer = function(topicName, payload) {
+AppViewModel.prototype.publishToMQTTServer = function(topicName, payload) {
 	var message = new Messaging.Message(payload);
 	message.destinationName = topicName;
 	this.mqttClient.send(message); 
 }
 
 //perform balance line matches and ranking seeking for the best people that could exchange stickers with the user
-AppModel.prototype.recalculateStickersInfoRanking = function() {
+AppViewModel.prototype.recalculateStickersInfoRanking = function() {
 	if(this.receivedStickersInfo!=null && this.neededStickersModel!=null && this.availableStickersModel!=null) {
 
 		//look for stickers that the current user needs and are available from others
@@ -245,121 +464,39 @@ AppModel.prototype.recalculateStickersInfoRanking = function() {
 
 }
 
-AppModel.prototype.showSection = function(name) {
-	document.getElementById("figurinhas-procuradas").style.display = "none";
-	document.getElementById("figurinhas-repetidas").style.display = "none";
-	document.getElementById("formulario-conexao").style.display = "none";
-	document.getElementById("lista-matches").style.display = "none";
-	document.getElementById(name).style.display = "block";
+AppViewModel.prototype.showSection = function(elementId) {
+	$("article").hide(); //hide all articles (app pages)
+	$("#"+elementId).show();
 }
-AppModel.prototype.showResultados = function() {
-	if (!this.mqttConnected) {
-		this.showSection("formulario-conexao");
+AppViewModel.prototype.showFaltandoSection = function() {
+	this.currentSection(this.interactionNeededStickers);
+}
+AppViewModel.prototype.showRepetidaNeededStickers = function() {
+	this.currentSection(this.interactionAvailableStickers);
+}
+AppViewModel.prototype.showTrocarAgoraSection = function() {
+	if (this.mqttConnection == null) {
+		this.currentSection(this.conexaoSection);
 	} else {
-		this.showSection("lista-matches");
+		this.currentSection(this.listaMatchesSection);
 	}
 }
-AppModel.prototype.showPessoas = function() {
-	this.showSection("lista-matches");
-	document.getElementById("pessoas").style.display = "block";
-	document.getElementById("arena-troca").style.display = "none";
+AppViewModel.prototype.showPessoas = function() {
+	showSection("lista-matches");
+	document.getElementById("pessoas").style.display = "none";
+	document.getElementById("arena-troca").style.display = "block";
 }
-AppModel.prototype.showArenaTroca = function(stickerInfo) {
-	var _self = this;
-	_self.selectedReceivedStickersInfo = stickerInfo;
-	_self.showSection("lista-matches");
+AppViewModel.prototype.showArenaTroca = function() {
+	showSection("lista-matches");
 	document.getElementById("pessoas").style.display = "none";
 	document.getElementById("arena-troca").style.display = "block";
 }
 
 
+//***** /end of VIEW VIEWMODELS ******//
 
 
 
 
-/** SELECTABLE ITEMS MODEL * */
-function SelectableItemsModel(storageName0, defaultItems) {
-	var _self = this;
-	_self.items = new Array();
-	_self._observable = ko.observable(0);
-	_self._dirty = false;
-	storageName = storageName0;
 
-	// recover previous selected state from storage
-	var _plainItems = defaultItems;
-	if(storageName!=null) {
-		var _storedJson = localStorage[storageName + "-items"];
-		if (_storedJson != null) {
-			var resItems = JSON.parse(_storedJson);
-			if (resItems != null && resItems.length > 0) {
-				_plainItems = resItems;
-			}
-		}
-	}
 
-	// transform plain items array to observable
-	for ( var i = 0; i < _plainItems.length; i++) {
-		var oi = SelectableItemsModel._createObservableItem(
-				_plainItems[i].number, _plainItems[i].selected, this);
-		_self.items.push(oi);
-	}
-
-	// store changes locally and notify peers from time to time when something
-	// has changed
-	window.setInterval(function() {
-		if (_self._dirty) {
-			// store changes locally
-			var recItems = new Array();
-			for ( var i = 0; i < _self.items.length; i++) {
-				recItems.push({
-					number : _self.items[i].number,
-					selected : _self.items[i].selected()
-				});
-			}
-			if(storageName!=null) {
-				localStorage[storageName + "-items"] = JSON.stringify(recItems);
-			}
-
-			// notify listeners about changes
-			_self._observable(new Date().getTime());
-
-			_self._dirty = false;
-		}
-	}, 3000);
-
-}
-
-SelectableItemsModel.prototype.subscribeToChanges = function(callbackFunction) {
-	this._observable.subscribe(callbackFunction);
-};
-
-SelectableItemsModel.prototype.toggleSelection = function(item) {
-	item.selected(!item.selected());
-};
-
-SelectableItemsModel._createObservableItem = function(itemNumber, itemSelected,
-		viewModel) {
-	var observableSelected = ko.observable(itemSelected);
-
-	// store changes as they are done
-	observableSelected.subscribe(function(newValue) {
-		viewModel._dirty = true;
-	});
-
-	return {
-		number : itemNumber,
-		selected : observableSelected
-	};
-};
-
-/** GUID GENERATOR * */
-var generateUUID = (function() {
-	function s4() {
-		return Math.floor((1 + Math.random()) * 0x10000).toString(16)
-				.substring(1);
-	}
-	return function() {
-		return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4()
-				+ s4() + s4();
-	};
-})();

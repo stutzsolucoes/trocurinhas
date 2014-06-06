@@ -7,10 +7,12 @@ html {
 	color: #444;
 }
 article {
-	display: none;
 	position: fixed;
 	top: 37px;
 	width: 100%;
+}
+article.fullscreen {
+	top: 0px;
 }
 header.app-header,
 footer.app-footer {
@@ -52,19 +54,19 @@ header.app-header .left-button,
 header.app-header .right-button {
 	margin-top: 3px;
 }
-header.app-header .left-button input[type=button],
-header.app-header .right-button input[type=button]{
+header.app-header .left-button span.cancel,
+header.app-header .right-button span.confirm{
 	font-size: 0.68rem;
 	border: 0px;
 	background: transparent;
 	color: white;
 	text-transform: uppercase;
-	display: none;
+	cursor: pointer;
 }
-header.app-header .left-button input[type=button] {
+header.app-header .left-button span.cancel {
 	color: #9E001C;
 }
-header.app-header .right-button input[type=button] {
+header.app-header .right-button span.confirm {
 	color: #4B893F;
 }
 footer.app-footer {
@@ -117,18 +119,18 @@ footer.app-footer nav ul:after {
 }
 /** FIM DO ESTILO TEMPLATE PADRAO **/
 
-/* TELA lista-matches */
-/** FIM TELA lista-matches **/
-#lista-matches section.pessoas {display: block;}
-#lista-matches section.arena-troca {display: none;}
-#lista-matches header {width: 100%;}
-#lista-matches header h1 {
+/* TELA trocar-agora */
+/** FIM TELA trocar-agora **/
+#trocar-agora section.pessoas {display: block;}
+#trocar-agora section.arena-troca {display: none;}
+#trocar-agora header {width: 100%;}
+#trocar-agora header h1 {
 	font-size: 0.79rem;
 	color: #C9C9C9;
 	text-align: right;
 }
 
-#lista-matches section.pessoas ul li {
+#trocar-agora section.pessoas ul li {
 	padding-top: 10px;
 	padding-bottom: 10px;
 	font-size: 0.755rem;
@@ -136,48 +138,48 @@ footer.app-footer nav ul:after {
 	border-bottom: 1px solid #EEE;
 	border-top: 1px solid white;
 }
-#lista-matches section.pessoas ul li:nth-child(1) {
+#trocar-agora section.pessoas ul li:nth-child(1) {
 	border-top: 0px;
 }
-#lista-matches section.pessoas ul li div.grupo:after {
+#trocar-agora section.pessoas ul li div.grupo:after {
 	clear: both;
 	display:table;
 }
-#lista-matches section.pessoas ul li div.grupo:after {
+#trocar-agora section.pessoas ul li div.grupo:after {
 	content:"";
 	display:table;
 }
 
-#lista-matches section.pessoas ul li .col-identificacao {
+#trocar-agora section.pessoas ul li .col-identificacao {
 	float: left;
 }
 
-#lista-matches section.pessoas ul li .col-identificacao {
+#trocar-agora section.pessoas ul li .col-identificacao {
 	min-width: 150px;
 	margin-left: 1%;
 	margin-right: 1%;
 }
 
-#lista-matches section.pessoas ul li .col-identificacao h2{
+#trocar-agora section.pessoas ul li .col-identificacao h2{
 	font-weight: 700;
 	font-family: 'Cabin Condensed', sans-serif;
 	font-size: 1.14rem;
 	color: #444;
 
 }
-#lista-matches section.pessoas ul li .col-identificacao em{
+#trocar-agora section.pessoas ul li .col-identificacao em{
 	font-style: normal;
 	font-family: 'Arimo', sans-serif;
 }
-#lista-matches section.pessoas ul li .col-identificacao aside{
+#trocar-agora section.pessoas ul li .col-identificacao aside{
 	color: #DDD;
 }
 
-#lista-matches section.pessoas ul li .col-action {
+#trocar-agora section.pessoas ul li .col-action {
 	font-family: serif;
 }
-#lista-matches section.pessoas ul li .col-action,
-#lista-matches section.pessoas ul li .col-quantidade {
+#trocar-agora section.pessoas ul li .col-action,
+#trocar-agora section.pessoas ul li .col-quantidade {
 	float: right;
 	margin: 0% 2%;
 	margin-top: 5px;
@@ -188,7 +190,7 @@ footer.app-footer nav ul:after {
 	padding: 8px 6px;
 
 }
-#lista-matches section.pessoas ul li .col-quantidade {
+#trocar-agora section.pessoas ul li .col-quantidade {
 	background: #4B893F;
 	-moz-border-radius: 15px;
 	-webkit-border-radius: -1px;

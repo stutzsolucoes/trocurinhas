@@ -10,20 +10,17 @@
 
 	<link rel="stylesheet" href="css/reset.css">
 
-	<link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700|Cabin+Condensed:400,700|Arimo:400,700|Roboto+Condensed:400,700|Archivo+Narrow' rel='stylesheet' type='text/css'>
-	<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400|Cabin+Condensed:400,700|Arimo:400,700' rel='stylesheet' type='text/css'>
 
 
 	<script src="js/knockout-min.js"></script>
 	<script	src="js/jquery.min.js"></script>
-	<link rel="stylesheet" href="css/jquery.mobile.min.css" />
 	<script	src="js/jquery.mobile.min.js"></script>
-
+<!--
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
 	<script	src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-	<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.2/jquery.mobile.min.css" />
 	<script	src="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.2/jquery.mobile.min.js"></script>
-
+-->
 	<link rel="stylesheet" href="app.html.css">
 	<script src="app.html.js"></script>
 	<script src="js/mqttws31.js"></script>
@@ -35,122 +32,157 @@
 
 <body>
 	
-<!--     <header class="app-header">
+     <header class="app-header" data-bind="with: currentInteraction().currentState">
       <div class="left-button">
-        <input type="button" value="cancelar"/>
+        <span class="cancel" data-bind="text: cancelButtonText, click: $parent.cancelAction, visible: cancelButtonText != null"/>
       </div>
-      <h1 id="section-title">Pessoas próximas</h1>
+      <h1 id="section-title" data-bind="text: view.pageTitle"></h1>
       <div class="right-button">
-        <input type="button" value="confirmar"/>
+        <span class="confirm" data-bind="text: confirmButtonText, click: $root.currentInteraction().confirmAction, visible: confirmButtonText != null"/>
       </div>
     </header>
- -->
-    <article id="figurinhas-procuradas">
-      <header>
-        <h1>Figurinhas que faltam</h1>
-        <aside>Indique abaixo quais figurinhas <strong>faltam para você</strong> completar o álbum</aside>
-      </header>
 
-      <section class="listagem">
-		<div data-bind="foreach: neededStickersModel.items">
-			<div style="float: left; margin-right: 10px">
-				<button class="ui-shadow ui-btn ui-corner-all"
-					style="width: 80px; color: yellow"
-					data-bind="text: number, 
-						      click: $parent.neededStickersModel.toggleSelection,
-						      style: { backgroundColor: selected() ? 'green' : '#999999' }"></button>
-			</div>
-		</div>
+    <article id="welcome" data-bind="visible: currentInteraction() == interactionWelcome, with: interactionWelcome">
+
+      <section class="listagem" data-bind="with: currentState().view">
+        <header>
+          <aside>Indique abaixo quais figurinhas <strong>faltam para você</strong> completar o álbum</aside>
+        </header>
+
+        <div data-bind="foreach: items">
+          <div style="float: left; margin-right: 10px">
+            <button class="ui-shadow ui-btn ui-corner-all"
+              style="width: 80px; color: yellow"
+              data-bind="text: number, 
+                      click: $parent.toggleSelection,
+                      style: { backgroundColor: selected() ? 'green' : '#999999' }"></button>
+          </div>
+        </div>
+      </section>
+
+    </article>
+ 
+    <article id="figurinhas-procuradas" data-bind="visible: currentInteraction() == interactionNeededStickers, with: interactionNeededStickers">
+
+      <section class="listagem" data-bind="with: $root.viewNeededStickers, visible: currentState().view == $root.viewNeededStickers">
+        <header>
+          <aside>Indique abaixo quais figurinhas <strong>faltam para você</strong> completar o álbum</aside>
+        </header>
+
+        <div data-bind="foreach: items">
+          <div style="float: left; margin-right: 10px">
+            <button class="ui-shadow ui-btn ui-corner-all"
+              style="width: 80px; color: yellow"
+              data-bind="text: number, 
+                      click: $parent.toggleSelection,
+                      style: { backgroundColor: selected() ? 'green' : '#999999' }"></button>
+          </div>
+        </div>
       </section>
 
     </article>
 
-    <article id="figurinhas-repetidas">
-      <header>
-        <h1>Figurinhas repetidas</h1>
-        <aside>Indique abaixo quais figurinhas <strong>você tem repetida</strong> e quer trocar</aside>
-      </header>
+    <article id="figurinhas-repetidas" data-bind="visible: currentInteraction() == interactionAvailableStickers, with: interactionAvailableStickers">
 
-      <section class="listagem">
-		<div data-bind="foreach: availableStickersModel.items">
-			<div style="float: left; margin-right: 10px">
-				<button class="ui-shadow ui-btn ui-corner-all"
-					style="width: 80px; color: yellow"
-					data-bind="text: number, 
-						      click: $parent.availableStickersModel.toggleSelection,
-						      style: { backgroundColor: selected() ? 'green' : '#999999' }"></button>
-			</div>
-		</div>
+      <section class="listagem" data-bind="with: $root.viewAvailableStickers, visible: currentState().view == $root.viewAvailableStickers">
+        <header>
+          <h1>Figurinhas repetidas</h1>
+          <aside>Indique abaixo quais figurinhas <strong>você tem repetida</strong> e quer trocar</aside>
+        </header>
+
+        <div data-bind="foreach: items">
+          <div style="float: left; margin-right: 10px">
+            <button class="ui-shadow ui-btn ui-corner-all"
+              style="width: 80px; color: yellow"
+              data-bind="text: number, 
+                      click: $parent.toggleSelection,
+                      style: { backgroundColor: selected() ? 'green' : '#999999' }"></button>
+          </div>
+        </div>
       </section>
 
     </article>
 
-    <article id="formulario-conexao">
-      
-      <header>
-        <h1>Olá, conecte-se para encontrar pessoas e trocar as figurinhas</h1>
-        <aside>
-          Não precisa de cadastro! Apenas preencha o formulário abaixo e o aplicativo listará pessoas que estejam no bairro nesse momento querendo trocar figurinhas <a class="saiba mais">?</a>
-        </aside>
-      </header>  
+    <article id="trocar-agora" data-bind="visible: currentInteraction() == interactionExchangeNow, with: interactionExchangeNow">
 
-      <section>
+      <section data-bind="with: $root.viewConnect, visible: currentState().view == $root.viewConnect">
+
+        <header>
+          <h1>Olá, conecte-se para encontrar pessoas e trocar as figurinhas</h1>
+          <aside>
+            Não precisa de cadastro! Apenas preencha o formulário abaixo e o aplicativo listará pessoas que estejam no bairro nesse momento querendo trocar figurinhas <a class="saiba mais">?</a>
+          </aside>
+        </header> 
+
         <form class="form-connect">
           
           <div class="form-field">
-            <input type="text" placeholder="Nome ou Apelido" data-bind="value:nickname" />
+            <input type="text" placeholder="Nome ou Apelido" data-bind="nickname" />
             <div class="input-subtitle">Ex.: Tiãozinho</div>
           </div>
           
           <div class="form-field">
-            <input type="text" placeholder="Onde quer trocar as figurinhas?" data-bind="value:place" />
+            <input type="text" placeholder="Onde quer trocar as figurinhas?" data-bind="place" />
             <div class="input-subtitle">Ex.: Banca da 406 Norte, 13h30</div>
           </div>
 
           <div class="form-field">
-            <input type="text" placeholder="Como te identificar?" data-bind="value:selfInfo" />
+            <input type="text" placeholder="Como te identificar?" data-bind="selfInfo" />
             <div class="input-subtitle">Ex.: Boné vermelho</div>
           </div>
 
-          <button class="ui-shadow ui-btn ui-corner-all" data-bind="text: 'Conectar', click: connectAndPublishSelfInfo" />
+          <input type="submit" value="Conectar" data-bind="click: $root.connectAndPublishSelfInfo" />
 
         </form>
 
       </section>
-    </article>
 
-    <article id="lista-matches">
-
-      <section class="pessoas" id="pessoas">
-      	Matches
-          <ul data-bind="foreach: receivedStickersScreen()">
+      <section class="pessoas" data-bind="with: $root.viewNearPeople, visible: currentState().view == $root.viewNearPeople">
+          <ul>
             <li>
-              <button data-bind="click:$parent.showArenaTroca">Test</button>
+
               <div class="grupo">
+
                 <div class="col-identificacao">
-                  <h2><span data-bind="text:nickname"></span></h2>
+                  <h2>Tiãozinho</h2>
                   <div>
-                    <em><span data-bind="text:place"></span></em>
+                    <em>Banca da 206 Norte às 13h30</em>
                   </div>
-                  <aside><span data-bind="text:timeElapsedInfo"></span></aside>
+                  <aside>há 20 minutos</aside>
                 </div>
                 
                 <div class="col-action">&gt;</div>                  
-                <div class="col-quantidade"><span data-bind="text:availableStickers.length"></span></div>
+                <div class="col-quantidade">333</div>
 
               </div>              
 
             </li>
 
+            <li>
+
+              <div class="grupo">
+
+                <div class="col-identificacao">
+                  <h2>Bola</h2>
+                  <div>
+                    <em>Banca da 111 Norte às 13h30</em>
+                  </div>
+                  <aside>há 33 minutos</aside>
+                </div>
+                
+                <div class="col-action">&gt;</div>                  
+                <div class="col-quantidade">95</div>
+
+              </div>              
+
+            </li>
           </ul>
-          <button data-bind="click:disconnectFromMQTTServer()">Disconnect</button>
       </section>  
 
-      <section class="arena-troca" id="arena-troca" data-bind="with:selectedReceivedStickersInfo">
+      <section class="arena-troca" data-bind="with: $root.viewExchangingArena, visible: currentState().view == $root.viewExchangingArena">
           <div class="identificacao">
-            <h3><span data-bind="text:nickname"></h3>
-            <!-- <span data-bind="text:timeElapsedInfo"> -->
-            <aside><span data-bind="text:place"></aside>
+            <h3>Tiãozinho</h3>
+            <aside>Banca da 206 Norte às 13h30</aside>
           </div>
           <div class="listagens">
             <nav>
@@ -160,13 +192,13 @@
             <div class="procuradas">
               <aside>figurinhas que <strong>você precisa</strong> e que essa pessoa tem</aside>
               <ul>
-                <li><span data-bind="text:stickersForReceivingFromPeer.length"></li>
+                <li>1</li>
               </ul>
             </div>
             <div class="repetidas">
               <aside>figurinhas que <strong>você tem</strong> e que essa pessoa precisa</aside>
               <ul>
-                <li><span data-bind="text:stickersForGivingToPeer.length"></li>
+                <li>1</li>
               </ul>
             </div>
           </div>
@@ -174,18 +206,18 @@
 
     </article>
 
-    <footer class="app-footer">
+    <footer class="app-footer" data-bind="visible: !firstTimeRunning">
       <nav>
         <ul>
-          <li class="first" onclick="vm.showSection('figurinhas-procuradas')">
+          <li class="first">
             <div style="letter-spacing: 2px">]]]?]</div>
             Faltando
           </li>
-          <li class="mid" onclick="vm.showSection('figurinhas-repetidas')">
+          <li class="mid">
             <div style="letter-spacing: 2px">[[[[[</div>
             Repetidas
           </li>
-          <li class="last active" onclick="vm.showResultados()">
+          <li class="last active">
             <div style="font-family: monospace; font-size:14px; letter-spacing: 0px;">
               \<span style="font-size:10px">o</span>/
             </div>
@@ -195,10 +227,10 @@
       </nav>
     </footer>
 
-	<script>
-		var vm = new AppModel();
-		ko.applyBindings(vm);
-	</script>
+  <script>
+    var vm = new AppViewModel();
+    ko.applyBindings(vm);
+  </script>
 
 </body>
 </html>
