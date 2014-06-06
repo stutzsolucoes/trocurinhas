@@ -15,15 +15,18 @@ var generateUUID = (function() {
 //***** VIEW VIEWMODELS ******//
 /** -- INTERNAL VIEW MODELS -- **/
 //sections view interaction
-InteractionModelState = function(view, cancelButtonText, confirmButtonText) {
+InteractionModelState = function(view, cancelButtonText, confirmButtonText, onenter, onexit) {
 	this.view = view;
 	this.cancelButtonText = typeof cancelButtonText !== 'undefined' ? cancelButtonText : null;
-	this.confirmButtonText = typeof confirmButtonText !== 'undefined' ? confirmButtonText : null;	
+	this.confirmButtonText = typeof confirmButtonText !== 'undefined' ? confirmButtonText : null;
+	this.onenter	= typeof onenter !== 'undefined' ? onenter : null;
+	this.onexit	= typeof onexit !== 'undefined' ? onexit : null;
 }
-InteractionModelTransition = function(fromState, toState, trigger) {
+InteractionModelTransition = function(fromState, toState, trigger, onactivate) {
 	this.fromState = fromState;
 	this.toState = toState;
 	this.trigger = trigger;
+	this.onactivate	= typeof onactivate === 'function' ? onactivate : null;
 }
 InteractionModel = function(globalViewModel, interactionId, defaultState) {		
 	var _self = this;
@@ -35,36 +38,43 @@ InteractionModel = function(globalViewModel, interactionId, defaultState) {
 	_self.currentState = ko.observable(defaultState); 
 
 	_self.transitions = new Array();
-	_self.addTransition = function(fromState, toState, trigger) {
-		_self.transitions.push(new InteractionModelTransition(fromState, toState, trigger));
+	_self.addTransition = function(fromState, toState, trigger, onactivate) {
+		_self.transitions.push(new InteractionModelTransition(fromState, toState, trigger, onactivate));
 	}
-	_self.confirmAction = function() {
+
+	_self.resolveTransition = function(actionTrigger) {
 		foundTransition = $(_self.transitions).filter(function() {
-			return (this.fromState.view==_self.currentState().view && this.trigger=="confirm");
+			return (this.fromState.view==_self.currentState().view && this.trigger==actionTrigger);
 		});
 		if (foundTransition.length!=1) {
 			alert("erro na montagem da maquina de estados da interação");
+			return false;
 		}
+		
+		if (typeof foundTransition[0].fromState.onexit === 'function') {
+			foundTransition[0].fromState.onexit();
+		}
+		if (typeof foundTransition[0].onactivate === 'function') {
+			foundTransition[0].onactivate();
+		}
+
 		if (foundTransition[0].toState!=null) { 
+			if (typeof foundTransition[0].toState.onenter === 'function') {
+				foundTransition[0].toState.onenter();
+			}
 			_self.currentState(foundTransition[0].toState);
 		}else{ //if found a transititon but the 'toState' is null, then it changes the interaction to the AppModel default interaction
 			_self.parentViewModel.openDefaultInteraction();
 		}
 		
 	}
-	_self.cancelAction = function() {
-		foundTransition = $(_self.transitions).filter(function() {
-			return (this.fromState.view==_self.currentState().view && this.trigger=="cancel");
-		});
-		if (foundTransition.length!=1) {
-			alert("erro na montagem da maquina de estados da interação");
-		}
-		if (foundTransition[0].toState!=null) { 
-			_self.currentState(foundTransition[0].toState);
-		}else{ //if found a transititon but the 'toState' is null, then it changes the interaction to the AppModel default interaction
-			_self.parentViewModel.openDefaultInteraction();
-		}
+	_self.confirmAction = function() {
+		_self.resolveTransition("confirm");
 	}
+	_self.cancelAction = function() {
+		_self.resolveTransition("cancel");
+	}
+
 }
 
 /** SELECTABLE ITEMS MODEL - Needed and Available Stickers * */
@@ -227,7 +237,10 @@ function AppViewModel() {
 	_self.interactionWelcome = new InteractionModel(_self, 1, selectNeededStickersState);	
 	_self.interactionWelcome.addTransition(selectNeededStickersState, selectAvailableStickersState, "confirm");
 	_self.interactionWelcome.addTransition(selectAvailableStickersState, selectNeededStickersState, "cancel");
-	_self.interactionWelcome.addTransition(selectAvailableStickersState, null, "concluir");
+	_self.interactionWelcome.addTransition(selectAvailableStickersState, null, "confirm", function() {
+		_self.firstTimeRunning(false);
+		localStorage["firstTimeFlag"] = 0;
+	});
 
 	//#2 - checking the stickers needed to complete the collection allowing to mark the ones got to remove them from the list
 	selectNeededStickersStateNoAction = new InteractionModelState(_self.viewNeededStickers);
@@ -247,8 +260,8 @@ function AppViewModel() {
 	_self.interactionExchangeNow.addTransition(exchangingState, chosingPeerState, "cancelExchange");
 
 	//checks if it is first time running the App
-	_self.firstTimeRunning = ko.observable(localStorage["firstTimeFlag"] == 1 ? true : false);
-	if (!_self.firstTimeRunning()) {
+	_self.firstTimeRunning = ko.observable(localStorage["firstTimeFlag"] == undefined ? true : false);
+	if (_self.firstTimeRunning()) {
 		_self.currentInteraction = ko.observable(_self.interactionWelcome);
 	}else{
 		_self.currentInteraction = ko.observable(_self.interactionNeededStickers);
