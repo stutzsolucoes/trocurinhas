@@ -50,7 +50,7 @@ InteractionModel = function(globalViewModel, interactionId, defaultState) {
 			alert("erro na montagem da maquina de estados da interação");
 			return false;
 		}
-		
+
 		if (typeof foundTransition[0].fromState.onexit === 'function') {
 			foundTransition[0].fromState.onexit();
 		}
@@ -66,7 +66,7 @@ InteractionModel = function(globalViewModel, interactionId, defaultState) {
 		}else{ //if found a transititon but the 'toState' is null, then it changes the interaction to the AppModel default interaction
 			_self.parentViewModel.openDefaultInteraction();
 		}
-		
+
 	}
 	_self.confirmAction = function() {
 		_self.resolveTransition("confirm");
@@ -75,6 +75,9 @@ InteractionModel = function(globalViewModel, interactionId, defaultState) {
 		_self.resolveTransition("cancel");
 	}
 
+	_self.bring = function() {
+		_self.parentViewModel.currentInteraction(_self);		
+	}
 }
 
 /** SELECTABLE ITEMS MODEL - Needed and Available Stickers * */

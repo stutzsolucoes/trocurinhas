@@ -98,6 +98,7 @@ footer.app-footer nav ul li{
 	text-transform: capitalize;
 	color: #999;
 	font-weight: 400;
+	cursor: pointer;
 }
 
 footer.app-footer nav ul li.first {

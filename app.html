@@ -209,15 +209,15 @@
     <footer class="app-footer" data-bind="visible: !firstTimeRunning()">
       <nav>
         <ul>
-          <li class="first">
+          <li class="first" data-bind="css: { active: currentInteraction().id == 2 }, click: interactionNeededStickers.bring">
             <div style="letter-spacing: 2px">]]]?]</div>
             Faltando
           </li>
-          <li class="mid">
+          <li class="mid" data-bind="css: { active: currentInteraction().id == 3 }, click: interactionAvailableStickers.bring">
             <div style="letter-spacing: 2px">[[[[[</div>
             Repetidas
           </li>
-          <li class="last active">
+          <li class="last" data-bind="css: { active: currentInteraction().id == 4 }, click: interactionExchangeNow.bring">
             <div style="font-family: monospace; font-size:14px; letter-spacing: 0px;">
               \<span style="font-size:10px">o</span>/
             </div>
