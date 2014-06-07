@@ -36,11 +36,11 @@
 	
      <header class="app-header" data-bind="with: currentInteraction().currentState">
       <div class="left-button">
-        <span class="cancel" data-bind="text: cancelButtonText, click: $root.currentInteraction().cancelAction, visible: cancelButtonText != null"/>
+        <span class="cancel" data-bind="text: cancelButtonText, click: $root.currentInteraction().cancelAction, visible: cancelButtonText != null"></span>
       </div>
       <h1 id="section-title" data-bind="text: view.pageTitle"></h1>
       <div class="right-button">
-        <span class="confirm" data-bind="text: confirmButtonText, click: $root.currentInteraction().confirmAction, visible: confirmButtonText != null"/>
+        <span class="confirm" data-bind="text: confirmButtonText, click: $root.currentInteraction().confirmAction, visible: confirmButtonText != null"></span>
       </div>
     </header>
 
@@ -104,28 +104,28 @@
 
         <header>
           <aside>
-            Não é preciso se cadastrar! Preencha o formulário abaixo e o aplicativo listará pessoas que estão no bairro nesse momento querendo trocar figurinhas
+            Não é preciso se cadastrar! Preencha o formulário abaixo e o aplicativo listará pessoas que estão no mesmo bairro que você querendo trocar as figurinhas 
           </aside>
         </header> 
 
-        <form class="form-connect">
+        <form class="form-connect" data-bind="submit: $root.connectAndPublishSelfInfo">
           
           <div class="form-field">
-            <input type="text" placeholder="Nome ou Apelido" data-bind="nickname" />
+            <input type="text" placeholder="Nome ou Apelido" data-bind="value: nickname" />
             <div class="input-subtitle">Ex.: Tiãozinho</div>
           </div>
           
           <div class="form-field">
-            <input type="text" placeholder="Onde quer trocar as figurinhas?" data-bind="place" />
+            <input type="text" placeholder="Onde quer trocar as figurinhas?" data-bind="value: place" />
             <div class="input-subtitle">Ex.: Banca da 406 Norte, 13h30</div>
           </div>
 
           <div class="form-field">
-            <input type="text" placeholder="Como te identificar?" data-bind="selfInfo" />
+            <input type="text" placeholder="Como te identificar?" data-bind="value: selfInfo" />
             <div class="input-subtitle">Ex.: Boné vermelho</div>
           </div>
 
-          <button data-bind="click: $root.connectAndPublishSelfInfo">Conectar</button>
+          <button type="submit">Conectar</button>
 
         </form>
 

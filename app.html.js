@@ -42,7 +42,7 @@ InteractionModel = function(globalViewModel, interactionId, defaultState) {
 		_self.transitions.push(new InteractionModelTransition(fromState, toState, trigger, onactivate));
 	}
 
-	_self.resolveTransition = function(actionTrigger) {
+	_self.triggerTransition = function(actionTrigger) {
 		foundTransition = $(_self.transitions).filter(function() {
 			return (this.fromState.view==_self.currentState().view && this.trigger==actionTrigger);
 		});
@@ -69,10 +69,10 @@ InteractionModel = function(globalViewModel, interactionId, defaultState) {
 
 	}
 	_self.confirmAction = function() {
-		_self.resolveTransition("confirm");
+		_self.triggerTransition("confirm");
 	}
 	_self.cancelAction = function() {
-		_self.resolveTransition("cancel");
+		_self.triggerTransition("cancel");
 	}
 
 	_self.bring = function() {
@@ -188,6 +188,7 @@ function AppViewModel() {
 
 	var _self = this;
 
+	//____model stuff
 	var _defaultItems1 = new Array();
 	for ( var i = 1; i <= 600; i++) {
 		_defaultItems1.push({
@@ -210,6 +211,18 @@ function AppViewModel() {
 		_self.clientUUID = generateUUID();
 		localStorage["clientUUID"] = _self.clientUUID;
 	}
+
+	//MQTT Stuff
+	_self.mqttClient = null;
+	_self.mqttConnected =  ko.observable(false);
+	_self.mainTopicName = "/main/notclassified";
+
+	this.receivedStickersInfo = new Array();
+	this.receivedStickersScreen = ko.observableArray();
+
+	this.selectedReceivedStickersInfo = null;
+	// /END OF ____model stuff
+
 	
 	//views ~ <section>
 	//#1 - needed stickers
@@ -224,6 +237,9 @@ function AppViewModel() {
 
 	//#3 - connect form
 	_self.viewConnect = new ConnectViewModel(4, "Conectando-se");
+	_self.viewConnect.nickname = localStorage["nickname"] === undefined ? null : ko.observable(localStorage["nickname"]);
+	_self.viewConnect.place = localStorage["place"] === undefined ? null : ko.observable(localStorage["place"]);
+	_self.viewConnect.selfInfo = localStorage["selfInfo"] === undefined ? null : ko.observable(localStorage["selfInfo"]);
 
 	//#4 - list with people in the same neighborhood
 	_self.viewNearPeople = new NearPeopleViewModel(5, "Pessoas próximas");
@@ -255,12 +271,25 @@ function AppViewModel() {
 
 	//#4 - connect (if not), locate people, choose one and exchange the stickers by marking the ones the user will got from the other peer and the ones the user is giving
 	connectingState = new InteractionModelState(_self.viewConnect);
-	chosingPeerState = new InteractionModelState(_self.viewNearPeople);
+	chosingPeerState = new InteractionModelState(_self.viewNearPeople, "desconectar", null);
 	exchangingState = new InteractionModelState(_self.viewExchangingArena);
 	_self.interactionExchangeNow = new InteractionModel(_self, 4, connectingState);
-	_self.interactionExchangeNow.addTransition(connectingState, chosingPeerState, "connect");
+	_self.interactionExchangeNow.addTransition(connectingState, chosingPeerState, "connected");
 	_self.interactionExchangeNow.addTransition(chosingPeerState, exchangingState, "exchange");
+	_self.interactionExchangeNow.addTransition(chosingPeerState, connectingState, "cancel", function() {
+		_self.disconnectFromMQTTServer();
+	});
 	_self.interactionExchangeNow.addTransition(exchangingState, chosingPeerState, "cancelExchange");
+	_self.interactionExchangeNow.addTransition(exchangingState, connectingState, "cancel", function() {
+		_self.disconnectFromMQTTServer();
+	});
+	_self.mqttConnected.subscribe(function(newValue) { 
+		if (newValue) {
+			_self.interactionExchangeNow.triggerTransition("connected");
+		}else{
+			_self.interactionExchangeNow.triggerTransition("cancel");
+		}
+	});
 
 	//checks if it is first time running the App
 	_self.firstTimeRunning = ko.observable(localStorage["firstTimeFlag"] == undefined ? true : false);
@@ -274,20 +303,6 @@ function AppViewModel() {
 	_self.openDefaultInteraction = function() {
 		_self.currentInteraction(_self.interactionNeededStickers);
 	}
-
-	//MQTT Stuff
-	_self.mqttClient = null;
-	_self.mqttConnected = false;
-	_self.mainTopicName = "/main/notclassified";
-
-	_self.viewConnect.nickname = localStorage["nickname"];
-	_self.viewConnect.place = localStorage["place"];
-	_self.viewConnect.selfInfo = localStorage["selfInfo"];
-
-	this.receivedStickersInfo = new Array();
-	this.receivedStickersScreen = ko.observableArray();
-
-	this.selectedReceivedStickersInfo = null;
 
 	//update elapsed time informations
 	window.setInterval(function() {
@@ -315,16 +330,16 @@ function AppViewModel() {
 	}
 
 	_self.publishStickersInfoToServer = function() {
-		if(_self.mqttConnected) {
+		if(_self.mqttConnected()) {
 			console.log("Preparing stickers info...");
 			var stickersInfo = {
 				clientUUID: _self.clientUUID,
 				time: new Date().getTime(),
 				nickname: _self.viewConnect.nickname.peek(),
-				place: _self.place.viewConnect.peek(),
+				place: _self.viewConnect.place.peek(),
 				selfInfo: _self.viewConnect.selfInfo.peek(),
-				neededStickers: _self.getOnlySelectedItems(_self.neededStickersModel.items),
-				availableStickers: _self.getOnlySelectedItems(_self.availableStickersModel.items)
+				neededStickers: _self.getOnlySelectedItems(_self.viewNeededStickers.items),
+				availableStickers: _self.getOnlySelectedItems(_self.viewAvailableStickers.items)
 				//stickersForReceivingFromPeer: Array - used later during ranking calculations
 				//stickersForGivingToPeer: Array - used later during ranking calculations
 			}
@@ -361,8 +376,7 @@ function AppViewModel() {
 			try {
 				_self.mqttClient.disconnect();
 				_self.mqttClient = null;
-				_self.mqttConnected = false;
-				_self.showResultados();
+				_self.mqttConnected(false);
 	 		} catch (e) {
 	 			console.log(e);
 	 		}
@@ -371,9 +385,9 @@ function AppViewModel() {
 
 	_self.connectToMQTTServer = function(mainTopicName, onSuccess) {
 		//store info for later use
-		localStorage["nickname"] = _self.viewConnect.nickname;
-		localStorage["place"] = _self.viewConnect.place;
-		localStorage["selfInfo"] = _self.viewConnect.selfInfo;
+		localStorage["nickname"] = _self.viewConnect.nickname();
+		localStorage["place"] = _self.viewConnect.place();
+		localStorage["selfInfo"] = _self.viewConnect.selfInfo();
 
 		//connect to mqtt server
 		_self.disconnectFromMQTTServer();
@@ -382,19 +396,18 @@ function AppViewModel() {
 			timeout : 10,
 			onSuccess : function() {
 				try {
-					_self.mqttConnected = true;
+					_self.mqttConnected(true);
 					console.log("Subscribing to '"+mainTopicName+"'...");
 					_self.mqttClient.subscribe(mainTopicName);
 					if(onSuccess) {
 						onSuccess.call();
 					}
-					_self.showPessoas();
 				} catch (e) {
 					console.log(e);
 				}
 			},
 			onFailure : function(responseObject) {
-				_self.mqttConnected = false;
+				_self.mqttConnected(false);
 				console.log("Failure:"+responseObject.errorCode+" "+responseObject.errorMessage);
 			},
 			userName: "user",
