@@ -172,6 +172,10 @@ function NearPeopleViewModel(viewId, viewPageTitle) {
 	var _self = this;
 	_self.id = viewId;
 	_self.pageTitle = viewPageTitle;
+	_self.pessoas = ko.observableArray();
+	_self.addPessoa = function(pessoa) {
+		_self.pessas.push(pessoa);
+	}
 }
 
 /** EXCHANGING STICKERS VIEW MODEL * */
@@ -217,10 +221,8 @@ function AppViewModel() {
 	_self.mqttConnected =  ko.observable(false);
 	_self.mainTopicName = "/main/notclassified";
 
-	this.receivedStickersInfo = new Array();
-	this.receivedStickersScreen = ko.observableArray();
-
-	this.selectedReceivedStickersInfo = null;
+	_self.receivedStickersInfo = new Array();
+	_self.selectedReceivedStickersInfo = null;
 	// /END OF ____model stuff
 
 	
@@ -243,6 +245,7 @@ function AppViewModel() {
 
 	//#4 - list with people in the same neighborhood
 	_self.viewNearPeople = new NearPeopleViewModel(5, "Pessoas próximas");
+	_self.viewNearPeople.connectedPeople = ko.observableArray();
 
 	//#5 - selecting stickers you want and you are giving
 	_self.viewExchangingArena = new ExchangingArenaViewModel(6, "Trocando Figurinhas");
@@ -338,8 +341,8 @@ function AppViewModel() {
 				nickname: _self.viewConnect.nickname.peek(),
 				place: _self.viewConnect.place.peek(),
 				selfInfo: _self.viewConnect.selfInfo.peek(),
-				neededStickers: _self.getOnlySelectedItems(_self.viewNeededStickers.items),
-				availableStickers: _self.getOnlySelectedItems(_self.viewAvailableStickers.items)
+				neededStickers: _self.getOnlySelectedItems(_self.viewNeededStickers.items()),
+				availableStickers: _self.getOnlySelectedItems(_self.viewAvailableStickers.items())
 				//stickersForReceivingFromPeer: Array - used later during ranking calculations
 				//stickersForGivingToPeer: Array - used later during ranking calculations
 			}
@@ -348,16 +351,6 @@ function AppViewModel() {
 		} else {
 			console.log("Not connected to server");
 		}
-	}
-
-	_self.getOnlySelectedItems = function(items) {
-		var result = new Array();
-		for(var i=0; i<items.length; i++) {
-			if(items[i].selected()) {
-				result.push(items[i]);
-			}
-		}
-		return result;
 	}
 
 	_self.getOnlySelectedItems = function(items) {
@@ -455,7 +448,7 @@ function AppViewModel() {
 	}
 
 	_self.recalculateStickersInfoRanking = function() {
-		if(_self.receivedStickersInfo!=null && _self.neededStickersModel!=null && _self.availableStickersModel!=null) {
+		if(_self.receivedStickersInfo!=null && _self.viewNeededStickers!=null && _self.viewAvailableStickers!=null) {
 
 			//look for stickers that the current user needs and are available from others
 			for(var i=0; i<_self.receivedStickersInfo.length; i++) {
@@ -464,8 +457,8 @@ function AppViewModel() {
 				receivedStickerInfo.stickersForGivingToPeer = new Array();
 		
 				//find stickers that the current user could get from other peers
-				for(var j=0; j<_self.neededStickersModel.items.length; j++) {
-					var neededStickerByUser = _self.neededStickersModel.items[j];
+				for(var j=0; j<_self.viewNeededStickers.items().length; j++) {
+					var neededStickerByUser = _self.viewNeededStickers.items()[j];
 			
 					for(var k=0; k<receivedStickerInfo.availableStickers.length; k++) {
 						var availableStickerFromPeer = receivedStickerInfo.availableStickers[k];
@@ -476,8 +469,8 @@ function AppViewModel() {
 				}
 
 				//find stickers that the current user could give to other peers
-				for(var j=0; j<_self.availableStickersModel.items.length; j++) {
-					var availableStickerByUser = _self.availableStickersModel.items[j];
+				for(var j=0; j<_self.viewAvailableStickers.items().length; j++) {
+					var availableStickerByUser = _self.viewAvailableStickers.items()[j];
 			
 					for(var k=0; k<receivedStickerInfo.neededStickers.length; k++) {
 						var neededStickerFromPeer = receivedStickerInfo.neededStickers[k];
@@ -499,9 +492,9 @@ function AppViewModel() {
 				});
 				
 				//update screen items
-				_self.receivedStickersScreen.removeAll();
+				_self.viewNearPeople.connectedPeople.removeAll();
 				for(var i=0; i<_self.receivedStickersInfo.length; i++) {
-					_self.receivedStickersScreen.push(_self.receivedStickersInfo[i]);
+					_self.viewNearPeople.connectedPeople.push(_self.receivedStickersInfo[i]);
 				}
 			}
 		}

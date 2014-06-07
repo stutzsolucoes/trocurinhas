@@ -132,44 +132,26 @@
       </section>
 
       <section class="pessoas" data-bind="with: $root.viewNearPeople, visible: currentState().view == $root.viewNearPeople">
-          <ul>
+          <ul data-bind="foreach: connectedPeople">
             <li>
 
               <div class="grupo">
 
                 <div class="col-identificacao">
-                  <h2>Tiãozinho</h2>
+                  <h2 data-bind="text: nickname"></h2>
                   <div>
-                    <em>Banca da 206 Norte às 13h30</em>
+                    <em data-bind="text: place"></em>
                   </div>
-                  <aside>há 20 minutos</aside>
+                  <aside data-bind="text: timeElapsedInfo"></aside>
                 </div>
                 
                 <div class="col-action">&gt;</div>                  
-                <div class="col-quantidade">333</div>
+                <div class="col-quantidade" data-bind="text: stickersForReceivingFromPeer.length"></div>
 
               </div>              
 
             </li>
 
-            <li>
-
-              <div class="grupo">
-
-                <div class="col-identificacao">
-                  <h2>Bola</h2>
-                  <div>
-                    <em>Banca da 111 Norte às 13h30</em>
-                  </div>
-                  <aside>há 33 minutos</aside>
-                </div>
-                
-                <div class="col-action">&gt;</div>                  
-                <div class="col-quantidade">95</div>
-
-              </div>              
-
-            </li>
           </ul>
       </section>  
 
