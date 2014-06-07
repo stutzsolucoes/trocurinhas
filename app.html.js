@@ -280,9 +280,9 @@ function AppViewModel() {
 	_self.mqttConnected = false;
 	_self.mainTopicName = "/main/notclassified";
 
-	_self.nickname = localStorage["nickname"];
-	_self.place = localStorage["place"];
-	_self.selfInfo = localStorage["selfInfo"];
+	_self.viewConnect.nickname = localStorage["nickname"];
+	_self.viewConnect.place = localStorage["place"];
+	_self.viewConnect.selfInfo = localStorage["selfInfo"];
 
 	this.receivedStickersInfo = new Array();
 	this.receivedStickersScreen = ko.observableArray();
@@ -320,9 +320,9 @@ function AppViewModel() {
 			var stickersInfo = {
 				clientUUID: _self.clientUUID,
 				time: new Date().getTime(),
-				nickname: _self.nickname.peek(),
-				place: _self.place.peek(),
-				selfInfo: _self.selfInfo.peek(),
+				nickname: _self.viewConnect.nickname.peek(),
+				place: _self.place.viewConnect.peek(),
+				selfInfo: _self.viewConnect.selfInfo.peek(),
 				neededStickers: _self.getOnlySelectedItems(_self.neededStickersModel.items),
 				availableStickers: _self.getOnlySelectedItems(_self.availableStickersModel.items)
 				//stickersForReceivingFromPeer: Array - used later during ranking calculations
@@ -371,9 +371,9 @@ function AppViewModel() {
 
 	_self.connectToMQTTServer = function(mainTopicName, onSuccess) {
 		//store info for later use
-		localStorage["nickname"] = _self.nickname;
-		localStorage["place"] = _self.place;
-		localStorage["selfInfo"] = _self.selfInfo;
+		localStorage["nickname"] = _self.viewConnect.nickname;
+		localStorage["place"] = _self.viewConnect.place;
+		localStorage["selfInfo"] = _self.viewConnect.selfInfo;
 
 		//connect to mqtt server
 		_self.disconnectFromMQTTServer();
