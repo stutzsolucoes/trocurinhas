@@ -51,7 +51,7 @@
           <aside>Indique abaixo quais figurinhas <strong>faltam para você</strong> completar o álbum</aside>
         </header>
 
-        <div class="figurinhas-container" data-bind="foreach: items">
+        <div class="figurinhas-container lista-figurinhas-repetidas" data-bind="foreach: items">
           <div class="figurinha">
             <button
               data-bind="text: number, 
@@ -68,7 +68,7 @@
 
       <section class="listagem" data-bind="with: $root.viewNeededStickers, visible: currentState().view == $root.viewNeededStickers">
 
-        <div class="figurinhas-container" data-bind="foreach: items">
+        <div class="figurinhas-container lista-figurinhas-procuradas" data-bind="foreach: items">
           <div class="figurinha">
             <button
               data-bind="text: number, 
@@ -85,7 +85,7 @@
 
       <section class="listagem" data-bind="with: $root.viewAvailableStickers, visible: currentState().view == $root.viewAvailableStickers">
 
-        <div class="figurinhas-container" data-bind="foreach: items">
+        <div class="figurinhas-container lista-figurinhas-repetidas" data-bind="foreach: items">
           <div class="figurinha">
             <button
               data-bind="text: number, 
@@ -132,7 +132,7 @@
 
       <section class="pessoas" data-bind="with: $root.viewNearPeople, visible: currentState().view == $root.viewNearPeople">
           <ul data-bind="foreach: connectedPeople">
-            <li>
+            <li data-bind="click: $parent.selectPeer">
 
               <div class="grupo">
 
@@ -145,7 +145,12 @@
                 </div>
                 
                 <div class="col-action">&gt;</div>                  
-                <div class="col-quantidade" data-bind="text: stickersForReceivingFromPeer.length"></div>
+                <div class="col-quantidade" style="background: #A75353">
+                  <span>-</span><span data-bind="text: stickersForGivingToPeer.length"></span>
+                </div>
+                <div class="col-quantidade">
+                  <span>+</span><span data-bind="text: stickersForReceivingFromPeer.length"></span>
+                </div>
 
               </div>              
 
@@ -156,25 +161,38 @@
 
       <section class="arena-troca" data-bind="with: $root.viewExchangingArena, visible: currentState().view == $root.viewExchangingArena">
           <div class="identificacao">
-            <h3>Tiãozinho</h3>
-            <aside>Banca da 206 Norte às 13h30</aside>
+            <h2 data-bind="text: currentPeer().nickname"></h2>
+            <h3>
+                <strong>\o/</strong><span data-bind="text: currentPeer().selfInfo"></span>
+            </h3>
+            <aside>
+              <strong>=|=</strong><span data-bind="text: currentPeer().place"></span>
+            </aside>
           </div>
           <div class="listagens">
             <nav>
-              <input type="button" value="Procurando" />
-              <input type="button" value="Repetidas" />
+              <div class="available">
+                Ele precisa (<span data-bind="text: currentPeer().stickersForGivingToPeer.length"></span>)
+              </div>
+              <div class="needed">
+                Você precisa (<span data-bind="text: currentPeer().stickersForReceivingFromPeer.length"></span>)
+              </div>  
             </nav>
-            <div class="procuradas">
-              <aside>figurinhas que <strong>você precisa</strong> e que essa pessoa tem</aside>
-              <ul>
-                <li>1</li>
-              </ul>
+            <div class="lista-figurinhas-procuradas" data-bind="foreach: currentPeer().stickersForGivingToPeer">
+              <div class="figurinha">
+                <button
+                  data-bind="text: number, 
+                          
+                          css: { selected: selected }"></button>
+              </div>
             </div>
-            <div class="repetidas">
-              <aside>figurinhas que <strong>você tem</strong> e que essa pessoa precisa</aside>
-              <ul>
-                <li>1</li>
-              </ul>
+            <div class="lista-figurinhas-repetidas" data-bind="foreach: currentPeer().stickersForReceivingFromPeer">
+              <div class="figurinha">
+                <button
+                  data-bind="text: number, 
+                          
+                          css: { selected: selected }"></button>
+              </div>
             </div>
           </div>
       </section>

@@ -11,7 +11,7 @@ body {
 }
 article {
 	position: relative;
-	top: 37px;
+	top: 27px;
 	width: 100%;
 	padding-bottom: 100px;
 	display: table;
@@ -40,7 +40,7 @@ header.app-header {
 }
 header.app-header .left-button,
 header.app-header .right-button {
-	width: 20%;
+	width: 24%;
 }
 header.app-header .left-button,
 header.app-header h1{
@@ -58,11 +58,11 @@ header.app-header:after {
 
 header.app-header .left-button,
 header.app-header .right-button {
-	margin-top: 3px;
+	font-size: 0.8em;
 }
 header.app-header .left-button span.cancel,
 header.app-header .right-button span.confirm{
-	font-size: 0.68rem;
+	font-size: 0.58rem;
 	border: 0px;
 	background: transparent;
 	color: white;
@@ -87,9 +87,9 @@ header h1 {
 }
 header.app-header h1 {
 	text-align: center;
-	font-size: 1.2em;
-	line-height: 1.5em;
-	width: 56%;
+	font-size: 0.9em;
+	line-height: 1.3em;
+	width: 50%;
 	text-align: center;
 	color: #111;
 	font-family: 'Arimo';
@@ -151,6 +151,7 @@ footer.app-footer nav ul li.active div{
 	color: #AAA;
 	border-bottom: 1px solid #EEE;
 	border-top: 1px solid white;
+	background: #FCFCFC;
 }
 #trocar-agora section.pessoas ul li:nth-child(1) {
 	border-top: 0px;
@@ -171,7 +172,8 @@ footer.app-footer nav ul li.active div{
 	margin-right: 1%;
 }
 
-#trocar-agora section.pessoas ul li .col-identificacao h2{
+#trocar-agora section.pessoas ul li .col-identificacao h2,
+#trocar-agora section.arena-troca .identificacao h2{
 	font-weight: 700;
 	font-family: 'Cabin Condensed', sans-serif;
 	font-size: 1.14rem;
@@ -209,22 +211,31 @@ footer.app-footer nav ul li.active div{
 	color: white;
 }
 
-
-#figurinhas-procuradas .figurinha,
-#figurinhas-repetidas .figurinha {
+.lista-figurinhas-procuradas ul,
+.lista-figurinhas-repetidas ul{
+	display: table;
+}
+.lista-figurinhas-procuradas ul:after,
+.lista-figurinhas-repetidas ul:after {
+	clear: both;
+	content:"";
+	display:table;
+}
+.lista-figurinhas-procuradas .figurinha,
+.lista-figurinhas-repetidas .figurinha {
 	float: left; 
-	margin: 5px;
+	margin: 3px;
 	width: 30%;
 	min-width: 80px;
 	max-width: 100px;
 	border: 1px solid #EAEAEA;
 }
-#figurinhas-procuradas .figurinha:hover,
-#figurinhas-repetidas .figurinha:hover {
+.lista-figurinhas-procuradas .figurinha:hover,
+.lista-figurinhas-repetidas .figurinha:hover {
 	border-color: gray;
 }
-#figurinhas-procuradas .figurinha button,
-#figurinhas-repetidas .figurinha button{
+.lista-figurinhas-procuradas .figurinha button,
+.lista-figurinhas-repetidas .figurinha button{
 	height: auto;
 	width: 100%;
 	text-align: center;
@@ -242,22 +253,22 @@ footer.app-footer nav ul li.active div{
 	box-shadow: 0px 2px 6px -3px #999;
 }
 
-#figurinhas-procuradas .figurinha button {
+.lista-figurinhas-procuradas .figurinha button {
 	color: #A75353;
 	background-color: #FAFAFA;
 }
-#figurinhas-repetidas .figurinha button{
+.lista-figurinhas-repetidas .figurinha button{
 	color: #8BA284;
 	background-color: #FAFAFA;
 }
-#figurinhas-procuradas .figurinha button.selected {
+.lista-figurinhas-procuradas .figurinha button.selected {
 	color: white;
 	background-color: #A75353;
 	-moz-text-shadow: 1px 1px 1px #A75353;
 	-webkit-text-shadow: 1px 1px 1px #A75353;
 	text-shadow: 1px 1px 1px #A75353;
 }
-#figurinhas-repetidas .figurinha button.selected {
+.lista-figurinhas-repetidas .figurinha button.selected {
 	color: white;
 	background: #8BA284;	
 	-moz-text-shadow: 1px 1px 1px #8BA284;
@@ -314,4 +325,57 @@ footer.app-footer nav ul li.active div{
 	color: #777;
 	background: #FEFEFE;
 	padding: 10px;
+}
+
+#trocar-agora .pessoas ul li {
+	cursor: pointer;
+}
+
+#trocar-agora .arena-troca {
+	padding: 1px;
+	background: white;
+	border: 1px solid #EAEAEA;
+}
+#trocar-agora .arena-troca .identificacao h3 {
+	padding: 5px; 
+	color: #999;
+	font-size: .87em;
+	padding-bottom: 0px;
+}
+#trocar-agora .arena-troca .identificacao aside {
+	padding: 5px; 
+	color: #BBB;
+	font-size: .8em;
+}
+#trocar-agora .arena-troca .identificacao strong{
+	font-weight: 400;
+	font-size: 0.9em;
+	margin-right: 7px;
+	color: #DADADA;
+}
+
+#trocar-agora .arena-troca .listagens nav:after,
+ #trocar-agora .arena-troca .listagens:after {
+	clear: both;
+	content:"";
+	display:table;	
+}
+
+#trocar-agora .arena-troca .listagens .needed,
+#trocar-agora .arena-troca .listagens .available{
+	padding: 5px;
+	color: white;
+	width: 120px;
+	background: transparent;
+}
+#trocar-agora .arena-troca .listagens .needed {
+	float:left;
+	background: #A75353;
+	border: 1px solid #A75353;
+}
+#trocar-agora .arena-troca .listagens .available {
+	float:left;
+	background: #8BA284;
+	border: 1px solid #8BA284;
+	margin-right: 8px;
 }

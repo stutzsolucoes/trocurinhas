@@ -12,6 +12,19 @@ var generateUUID = (function() {
 })();
 /*** /END utils ***/
 
+StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, neededStickers, availableStickers, stickersForReceivingFromPeer, stickersForGivingToPeer) {
+	var _self = this;
+	_self.clientUUID = clientUUID,
+	_self.time = timeParam,
+	_self.nickname = nickname,
+	_self.place = place,
+	_self.selfInfo = selfInfo,
+	_self.neededStickers = neededStickers != null ? neededStickers : new Array() ,
+	_self.availableStickers = availableStickers != null ? availableStickers : new Array()
+	_self.stickersForReceivingFromPeer = stickersForReceivingFromPeer != null ? stickersForReceivingFromPeer : new Array();
+	_self.stickersForGivingToPeer = stickersForGivingToPeer != null ? stickersForGivingToPeer : new Array();
+};
+
 //***** VIEW VIEWMODELS ******//
 /** -- INTERNAL VIEW MODELS -- **/
 //sections view interaction
@@ -172,10 +185,12 @@ function NearPeopleViewModel(viewId, viewPageTitle) {
 	var _self = this;
 	_self.id = viewId;
 	_self.pageTitle = viewPageTitle;
-	_self.pessoas = ko.observableArray();
-	_self.addPessoa = function(pessoa) {
-		_self.pessas.push(pessoa);
+	_self.connectedPeople = ko.observableArray();
+	_self.selectedPeer = ko.observable();
+	_self.selectPeer = function(peer) {
+		_self.selectedPeer(peer);
 	}
+
 }
 
 /** EXCHANGING STICKERS VIEW MODEL * */
@@ -183,6 +198,7 @@ function ExchangingArenaViewModel(viewId, viewPageTitle) {
 	var _self = this;
 	_self.id = viewId;
 	_self.pageTitle = viewPageTitle;
+	_self.currentPeer = ko.observable(new StickersInfo());
 }
 
 /** end of -- INTERNAL VIEW MODELS -- **/
@@ -245,7 +261,6 @@ function AppViewModel() {
 
 	//#4 - list with people in the same neighborhood
 	_self.viewNearPeople = new NearPeopleViewModel(5, "Pessoas próximas");
-	_self.viewNearPeople.connectedPeople = ko.observableArray();
 
 	//#5 - selecting stickers you want and you are giving
 	_self.viewExchangingArena = new ExchangingArenaViewModel(6, "Trocando Figurinhas");
@@ -274,17 +289,21 @@ function AppViewModel() {
 
 	//#4 - connect (if not), locate people, choose one and exchange the stickers by marking the ones the user will got from the other peer and the ones the user is giving
 	connectingState = new InteractionModelState(_self.viewConnect);
-	chosingPeerState = new InteractionModelState(_self.viewNearPeople, "desconectar", null);
-	exchangingState = new InteractionModelState(_self.viewExchangingArena);
+	chosingPeerState = new InteractionModelState(_self.viewNearPeople, "desconectar");
+	exchangingState = new InteractionModelState(_self.viewExchangingArena, "voltar");
 	_self.interactionExchangeNow = new InteractionModel(_self, 4, connectingState);
 	_self.interactionExchangeNow.addTransition(connectingState, chosingPeerState, "connected");
 	_self.interactionExchangeNow.addTransition(chosingPeerState, exchangingState, "exchange");
 	_self.interactionExchangeNow.addTransition(chosingPeerState, connectingState, "cancel", function() {
 		_self.disconnectFromMQTTServer();
 	});
-	_self.interactionExchangeNow.addTransition(exchangingState, chosingPeerState, "cancelExchange");
-	_self.interactionExchangeNow.addTransition(exchangingState, connectingState, "cancel", function() {
-		_self.disconnectFromMQTTServer();
+	_self.interactionExchangeNow.addTransition(exchangingState, chosingPeerState, "cancel");
+	
+	_self.viewNearPeople.selectedPeer.subscribe(function(newValue) {
+		if (newValue!=null) {
+			_self.viewExchangingArena.currentPeer(newValue);
+			_self.interactionExchangeNow.triggerTransition("exchange");
+		}
 	});
 	_self.mqttConnected.subscribe(function(newValue) { 
 		if (newValue) {
@@ -335,17 +354,16 @@ function AppViewModel() {
 	_self.publishStickersInfoToServer = function() {
 		if(_self.mqttConnected()) {
 			console.log("Preparing stickers info...");
-			var stickersInfo = {
-				clientUUID: _self.clientUUID,
-				time: new Date().getTime(),
-				nickname: _self.viewConnect.nickname.peek(),
-				place: _self.viewConnect.place.peek(),
-				selfInfo: _self.viewConnect.selfInfo.peek(),
-				neededStickers: _self.getOnlySelectedItems(_self.viewNeededStickers.items()),
-				availableStickers: _self.getOnlySelectedItems(_self.viewAvailableStickers.items())
+			var stickersInfo = new StickersInfo(_self.clientUUID,
+				new Date().getTime(),
+				_self.viewConnect.nickname.peek(),
+				_self.viewConnect.place.peek(),
+				_self.viewConnect.selfInfo.peek(),
+				_self.getOnlySelectedItems(_self.viewNeededStickers.items()),
+				_self.getOnlySelectedItems(_self.viewAvailableStickers.items())
 				//stickersForReceivingFromPeer: Array - used later during ranking calculations
 				//stickersForGivingToPeer: Array - used later during ranking calculations
-			}
+			);
 			console.log("Publishing stickers info to MQTT server...");
 			_self.publishToMQTTServer(_self.mainTopicName, JSON.stringify(stickersInfo));
 		} else {
@@ -412,6 +430,10 @@ function AppViewModel() {
 			try {
 				console.log("Message arrived: " + message.payloadString);
 				stickersInfo = JSON.parse(message.payloadString);
+
+				if (stickersInfo.clientUUID === _self.clientUUID) {
+					return;
+				}
 				stickersInfo.timeElapsedInfo = ko.observable("Há poucos segundos");
 				
 				//remove previous results from peer
