@@ -34,7 +34,8 @@
 <body>
 	
      <header class="app-header" data-bind="with: currentInteraction().currentState">
-      <div class="left-button">&nbsp;
+      <div class="left-button">
+        <span data-bind="visible: cancelButtonText == null">&nbsp;</span>
         <span class="cancel" data-bind="text: cancelButtonText, click: $root.currentInteraction().cancelAction, visible: cancelButtonText != null"></span>
       </div>
       <h1 id="section-title" data-bind="text: view.pageTitle"></h1>
@@ -186,6 +187,7 @@
               <div class="figurinha" data-bind="css : $parent.isProcurada($data) ">
                 <button
                   data-bind="text: number, 
+                          click: $parent.toggleSelection,
                           css: { selected: selected }"></button>
               </div>
             </div>

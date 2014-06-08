@@ -210,6 +210,9 @@ function ExchangingArenaViewModel(viewId, viewPageTitle) {
 			return el == item;
 		}).length > 0 ? 'figurinha-procurada' : 'figurinha-repetida';
 	}
+	_self.toggleSelection = function(item) {
+		item.selected(!item.selected());
+	}
 }
 
 /** end of -- INTERNAL VIEW MODELS -- **/
@@ -370,8 +373,8 @@ function AppViewModel() {
 				_self.viewConnect.nickname.peek(),
 				_self.viewConnect.place.peek(),
 				_self.viewConnect.selfInfo.peek(),
-				_self.getOnlySelectedItems(_self.viewNeededStickers.items()),
-				_self.getOnlySelectedItems(_self.viewAvailableStickers.items())
+				_self.getOnlySelectedItems(_self.viewNeededStickers.items),
+				_self.getOnlySelectedItems(_self.viewAvailableStickers.items)
 				//stickersForReceivingFromPeer: Array - used later during ranking calculations
 				//stickersForGivingToPeer: Array - used later during ranking calculations
 			);
@@ -496,7 +499,7 @@ function AppViewModel() {
 					for(var k=0; k<receivedStickerInfo.availableStickers.length; k++) {
 						var availableStickerFromPeer = receivedStickerInfo.availableStickers[k];
 						if(neededStickerByUser.number==availableStickerFromPeer.number && neededStickerByUser.selected()) {
-							receivedStickerInfo.stickersForReceivingFromPeer.push({number: availableStickerFromPeer.number, selected:true});
+							receivedStickerInfo.stickersForReceivingFromPeer.push(neededStickerByUser);
 						}
 					}
 				}
@@ -508,7 +511,7 @@ function AppViewModel() {
 					for(var k=0; k<receivedStickerInfo.neededStickers.length; k++) {
 						var neededStickerFromPeer = receivedStickerInfo.neededStickers[k];
 						if(availableStickerByUser.number==neededStickerFromPeer.number && availableStickerByUser.selected()) {
-							receivedStickerInfo.stickersForGivingToPeer.push({number: availableStickerByUser.number, selected:true});
+							receivedStickerInfo.stickersForGivingToPeer.push(availableStickerByUser);
 						}
 					}
 				}
