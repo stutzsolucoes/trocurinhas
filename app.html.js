@@ -199,6 +199,17 @@ function ExchangingArenaViewModel(viewId, viewPageTitle) {
 	_self.id = viewId;
 	_self.pageTitle = viewPageTitle;
 	_self.currentPeer = ko.observable(new StickersInfo());
+	_self.combinedStickers = ko.computed(function() {
+		var combinedArray = _self.currentPeer().stickersForGivingToPeer.concat(_self.currentPeer().stickersForReceivingFromPeer);
+		return combinedArray.sort(function(a,b){
+			return a.number > b.number;
+		});
+	});
+	_self.isProcurada = function(item) {
+		return _self.currentPeer().stickersForReceivingFromPeer.filter(function(el){
+			return el == item;
+		}).length > 0 ? 'figurinha-procurada' : 'figurinha-repetida';
+	}
 }
 
 /** end of -- INTERNAL VIEW MODELS -- **/

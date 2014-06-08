@@ -212,18 +212,15 @@ footer.app-footer nav ul li.active div{
 	color: white;
 }
 
-.lista-figurinhas-procuradas ul,
-.lista-figurinhas-repetidas ul{
+.lista-figurinhas ul{
 	display: table;
 }
-.lista-figurinhas-procuradas ul:after,
-.lista-figurinhas-repetidas ul:after {
+.lista-figurinhas ul:after{
 	clear: both;
 	content:"";
 	display:table;
 }
-.lista-figurinhas-procuradas .figurinha,
-.lista-figurinhas-repetidas .figurinha {
+.lista-figurinhas .figurinha{
 	float: left; 
 	margin: 3px;
 	width: 30%;
@@ -231,12 +228,10 @@ footer.app-footer nav ul li.active div{
 	max-width: 100px;
 	border: 1px solid #EAEAEA;
 }
-.lista-figurinhas-procuradas .figurinha:hover,
-.lista-figurinhas-repetidas .figurinha:hover {
+.lista-figurinhas .figurinha:hover {
 	border-color: gray;
 }
-.lista-figurinhas-procuradas .figurinha button,
-.lista-figurinhas-repetidas .figurinha button{
+.lista-figurinhas .figurinha button {
 	height: auto;
 	width: 100%;
 	text-align: center;
@@ -262,14 +257,16 @@ footer.app-footer nav ul li.active div{
 	color: #8BA284;
 	background-color: #FAFAFA;
 }
-.lista-figurinhas-procuradas .figurinha button.selected {
+.lista-figurinhas-procuradas .figurinha button.selected,
+.figurinha-procurada button.selected {
 	color: white;
 	background-color: #A75353;
 	-moz-text-shadow: 1px 1px 1px #A75353;
 	-webkit-text-shadow: 1px 1px 1px #A75353;
 	text-shadow: 1px 1px 1px #A75353;
 }
-.lista-figurinhas-repetidas .figurinha button.selected {
+.lista-figurinhas-repetidas .figurinha button.selected,
+.figurinha-repetida button.selected {
 	color: white;
 	background: #8BA284;	
 	-moz-text-shadow: 1px 1px 1px #8BA284;
@@ -360,6 +357,9 @@ footer.app-footer nav ul li.active div{
 	font-family: "Source Sans Pro", helvetica;
 }
 
+#trocar-agora .arena-troca .listagens {
+	margin-top: 15px;
+}
 #trocar-agora .arena-troca .listagens nav:after,
  #trocar-agora .arena-troca .listagens:after {
 	clear: both;
@@ -378,7 +378,7 @@ footer.app-footer nav ul li.active div{
 #trocar-agora .arena-troca .subtitle {	
 	float:left;
 	width: 45%;
-	margin-top: 20px;
+	margin-top: 25px;
 }
 #trocar-agora .arena-troca .subtitle nav div{
     font-weight: 300;

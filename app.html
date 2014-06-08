@@ -34,7 +34,7 @@
 <body>
 	
      <header class="app-header" data-bind="with: currentInteraction().currentState">
-      <div class="left-button">
+      <div class="left-button">&nbsp;
         <span class="cancel" data-bind="text: cancelButtonText, click: $root.currentInteraction().cancelAction, visible: cancelButtonText != null"></span>
       </div>
       <h1 id="section-title" data-bind="text: view.pageTitle"></h1>
@@ -50,7 +50,7 @@
           <aside>Indique abaixo quais figurinhas <strong>faltam para você</strong> completar o álbum</aside>
         </header>
 
-        <div class="figurinhas-container lista-figurinhas-repetidas" data-bind="foreach: items">
+        <div class="figurinhas-container lista-figurinhas lista-figurinhas-repetidas" data-bind="foreach: items">
           <div class="figurinha">
             <button
               data-bind="text: number, 
@@ -67,7 +67,7 @@
 
       <section class="listagem" data-bind="with: $root.viewNeededStickers, visible: currentState().view == $root.viewNeededStickers">
 
-        <div class="figurinhas-container lista-figurinhas-procuradas" data-bind="foreach: items">
+        <div class="figurinhas-container lista-figurinhas lista-figurinhas-procuradas" data-bind="foreach: items">
           <div class="figurinha">
             <button
               data-bind="text: number, 
@@ -84,7 +84,7 @@
 
       <section class="listagem" data-bind="with: $root.viewAvailableStickers, visible: currentState().view == $root.viewAvailableStickers">
 
-        <div class="figurinhas-container lista-figurinhas-repetidas" data-bind="foreach: items">
+        <div class="figurinhas-container lista-figurinhas lista-figurinhas-repetidas" data-bind="foreach: items">
           <div class="figurinha">
             <button
               data-bind="text: number, 
@@ -182,22 +182,14 @@
 
           <div style="clear:both"></div>
           <div class="listagens">
-            <div class="lista-figurinhas-repetidas" data-bind="foreach: currentPeer().stickersForGivingToPeer">
-              <div class="figurinha">
+            <div class="lista-figurinhas" data-bind="foreach: combinedStickers">
+              <div class="figurinha" data-bind="css : $parent.isProcurada($data) ">
                 <button
                   data-bind="text: number, 
-                          
                           css: { selected: selected }"></button>
               </div>
             </div>
-            <div class="lista-figurinhas-procuradas" data-bind="foreach: currentPeer().stickersForReceivingFromPeer">
-              <div class="figurinha">
-                <button
-                  data-bind="text: number, 
-                          
-                          css: { selected: selected }"></button>
-              </div>
-            </div>
+            
           </div>
       </section>
 
