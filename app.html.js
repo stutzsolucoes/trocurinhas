@@ -416,7 +416,7 @@ function AppViewModel() {
 
 		//connect to mqtt server
 		_self.disconnectFromMQTTServer();
-		_self.mqttClient = new Messaging.Client("gostutz.com", 61623, new Date().getTime()+"");
+		_self.mqttClient = new Messaging.Client("23.227.177.176/mqtt", 80,  new Date().getTime()+"");
 		var options = {
 			timeout : 10,
 			onSuccess : function() {
