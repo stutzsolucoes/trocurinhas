@@ -26,6 +26,7 @@
 -->
   <link rel="stylesheet" href="app.html.css">
   <script src="app.html.js"></script>
+  <script src="js/ko.customBindings.js"></script>
   <script src="js/mqttws31.js"></script>
 
   <!--[if lt IE 9]>
@@ -137,7 +138,7 @@
 
       </section>
 
-      <section class="pessoas" data-bind="with: $root.viewNearPeople, visible: currentState().view == $root.viewNearPeople">
+      <section class="pessoas" data-bind="with: $root.viewNearPeople, visibleInOut: currentState().view == $root.viewNearPeople">
           <ul data-bind="foreach: connectedPeople">
             <li data-bind="click: $parent.selectPeer">
 
@@ -166,7 +167,7 @@
           </ul>
       </section>  
 
-      <section class="arena-troca" data-bind="with: $root.viewExchangingArena, visible: currentState().view == $root.viewExchangingArena">
+      <section class="arena-troca" data-bind="with: $root.viewExchangingArena, visibleOutIn: currentState().view == $root.viewExchangingArena">
           <div class="identificacao">
             <h2 data-bind="text: currentPeer().nickname"></h2>
             <h3>
