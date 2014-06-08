@@ -2,37 +2,39 @@
 
 <html lang="en">
 <head>
-	<meta charset="utf-8">
+  <meta charset="utf-8">
 
-	<title>Trocurinhas</title>
-	<meta name="description" content="Trocurinhas">
-	<meta name="author" content="Stutz Soluções">
+  <title>Trocurinhas</title>
+  <meta name="description" content="Trocurinhas">
+  <meta name="author" content="Stutz Soluções">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
   <link rel="stylesheet" href="css/reset.css">
 
-	<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400|Cabin+Condensed:400,700|Arimo:400,700' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400|Cabin+Condensed:400,700|Arimo:400,700' rel='stylesheet' type='text/css'>
 
 
-	<script src="js/knockout-min.js"></script>
-	<script	src="js/jquery.min.js"></script>
+  <script src="js/knockout-min.js"></script>
+  <script src="js/jquery.min.js"></script>
 <!--
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
-	<script	src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-	<script	src="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.2/jquery.mobile.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.2/jquery.mobile.min.js"></script>
 -->
-	<link rel="stylesheet" href="app.html.css">
-	<script src="app.html.js"></script>
-	<script src="js/mqttws31.js"></script>
+  <link rel="stylesheet" href="app.html.css">
+  <script src="app.html.js"></script>
+  <script src="js/mqttws31.js"></script>
 
-	<!--[if lt IE 9]>
-		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-	<![endif]-->
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
 </head>
 
 <body>
-	
+  
      <header class="app-header" data-bind="with: currentInteraction().currentState">
       <div class="left-button">
         <span data-bind="visible: cancelButtonText == null">&nbsp;</span>
@@ -104,7 +106,7 @@
 
         <header>
           <aside>
-			Não é preciso se cadastrar! Preencha o formulário abaixo e o aplicativo listará pessoas que estão no mesmo bairro que você querendo trocar as figurinhas           </aside>
+      Não é preciso se cadastrar! Preencha o formulário abaixo e o aplicativo listará pessoas que estão no mesmo bairro que você querendo trocar as figurinhas           </aside>
         </header> 
 
         <form class="form-connect" data-bind="submit: $root.connectAndPublishSelfInfo">
@@ -124,7 +126,12 @@
             <div class="input-subtitle">Ex.: Boné vermelho / http://fb.com/jbatista</div>
           </div>
 
-          <button type="submit">Conectar</button>
+          <div data-bind="visible: !$root.mqttConnecting()">
+            <button type="submit">Conectar</button>
+          </div>
+          <div data-bind="visible: $root.mqttConnecting()">
+            <button disabled="true">Conectando...</button>
+          </div>
 
         </form>
 
