@@ -2,16 +2,17 @@
 html {
 	font-size: 15px;
 	background: #FCFCFC;
-	font-family: 'Arimo', 'Droid Sans', helvetica, arial;
+	font-family: 'Arimo', 'Source Sans Pro', 'Droid Sans', helvetica, arial;
 	font-weight: 400;
 	color: #444;
 }
 body {
 	background: #F3F3F3;
+	min-height: 440px;
 }
 article {
 	position: relative;
-	top: 27px;
+	padding-top: 28px;
 	width: 100%;
 	padding-bottom: 100px;
 	display: table;
@@ -336,6 +337,10 @@ footer.app-footer nav ul li.active div{
 	background: white;
 	border: 1px solid #EAEAEA;
 }
+#trocar-agora .arena-troca .identificacao {
+	float: left;
+	width: 50%;
+}
 #trocar-agora .arena-troca .identificacao h3 {
 	padding: 5px; 
 	color: #999;
@@ -352,6 +357,7 @@ footer.app-footer nav ul li.active div{
 	font-size: 0.9em;
 	margin-right: 7px;
 	color: #DADADA;
+	font-family: "Source Sans Pro", helvetica;
 }
 
 #trocar-agora .arena-troca .listagens nav:after,
@@ -368,13 +374,30 @@ footer.app-footer nav ul li.active div{
 	width: 120px;
 	background: transparent;
 }
-#trocar-agora .arena-troca .listagens .needed {
+
+#trocar-agora .arena-troca .subtitle {	
 	float:left;
+	width: 45%;
+	margin-top: 20px;
+}
+#trocar-agora .arena-troca .subtitle nav div{
+    font-weight: 300;
+    font-size: 0.79em;
+	color: #999;
+	margin-top: 5px;
+	text-align: right;
+}
+#trocar-agora .arena-troca .subtitle span {
+	color: white;
+	padding-left: 4px;
+	padding-right: 4px;
+	margin: 0px;
+}
+#trocar-agora .arena-troca .needed-subtitle {
 	background: #A75353;
 	border: 1px solid #A75353;
 }
-#trocar-agora .arena-troca .listagens .available {
-	float:left;
+#trocar-agora .arena-troca .available-subtitle {
 	background: #8BA284;
 	border: 1px solid #8BA284;
 	margin-right: 8px;

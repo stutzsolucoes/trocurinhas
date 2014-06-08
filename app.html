@@ -17,7 +17,6 @@
 
 	<script src="js/knockout-min.js"></script>
 	<script	src="js/jquery.min.js"></script>
-	<script	src="js/jquery.mobile.min.js"></script>
 <!--
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
 	<script	src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
@@ -116,12 +115,12 @@
           
           <div class="form-field">
             <input type="text" placeholder="Onde quer trocar as figurinhas?" data-bind="value: place" />
-            <div class="input-subtitle">Ex.: Banca da 406 Norte, 13h30</div>
+            <div class="input-subtitle">Ex.: Banca da 406 Norte 13h30 / jbatista@gmail.com / 61-8888-8888</div>
           </div>
 
           <div class="form-field">
             <input type="text" placeholder="Como te identificar?" data-bind="value: selfInfo" />
-            <div class="input-subtitle">Ex.: Boné vermelho</div>
+            <div class="input-subtitle">Ex.: Boné vermelho / http://fb.com/jbatista</div>
           </div>
 
           <button type="submit">Conectar</button>
@@ -145,10 +144,10 @@
                 </div>
                 
                 <div class="col-action">&gt;</div>                  
-                <div class="col-quantidade" style="background: #A75353">
+                <div class="col-quantidade">
                   <span>-</span><span data-bind="text: stickersForGivingToPeer.length"></span>
                 </div>
-                <div class="col-quantidade">
+                <div class="col-quantidade" style="background: #A75353">
                   <span>+</span><span data-bind="text: stickersForReceivingFromPeer.length"></span>
                 </div>
 
@@ -169,16 +168,21 @@
               <strong>=|=</strong><span data-bind="text: currentPeer().place"></span>
             </aside>
           </div>
-          <div class="listagens">
+          <div class="subtitle">
             <nav>
-              <div class="available">
-                Ele precisa (<span data-bind="text: currentPeer().stickersForGivingToPeer.length"></span>)
-              </div>
-              <div class="needed">
-                Você precisa (<span data-bind="text: currentPeer().stickersForReceivingFromPeer.length"></span>)
+              <div>
+                Você precisa <span class="needed-subtitle" data-bind="text: currentPeer().stickersForReceivingFromPeer.length"></span>
               </div>  
+              <div>
+                Ele precisa <span class="available-subtitle" data-bind="text: currentPeer().stickersForGivingToPeer.length"></span>
+              </div>
+
             </nav>
-            <div class="lista-figurinhas-procuradas" data-bind="foreach: currentPeer().stickersForGivingToPeer">
+          </div>
+
+          <div style="clear:both"></div>
+          <div class="listagens">
+            <div class="lista-figurinhas-repetidas" data-bind="foreach: currentPeer().stickersForGivingToPeer">
               <div class="figurinha">
                 <button
                   data-bind="text: number, 
@@ -186,7 +190,7 @@
                           css: { selected: selected }"></button>
               </div>
             </div>
-            <div class="lista-figurinhas-repetidas" data-bind="foreach: currentPeer().stickersForReceivingFromPeer">
+            <div class="lista-figurinhas-procuradas" data-bind="foreach: currentPeer().stickersForReceivingFromPeer">
               <div class="figurinha">
                 <button
                   data-bind="text: number, 
