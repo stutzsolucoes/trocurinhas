@@ -12,7 +12,7 @@ var generateUUID = (function() {
 })();
 /*** /END utils ***/
 
-StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, neededStickers, availableStickers, stickersForReceivingFromPeer, stickersForGivingToPeer) {
+StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, neededStickers, availableStickers, firstMessage) {
 	var _self = this;
 	_self.clientUUID = clientUUID,
 	_self.time = timeParam,
@@ -21,8 +21,9 @@ StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, needed
 	_self.selfInfo = selfInfo,
 	_self.neededStickers = neededStickers != null ? neededStickers : new Array() ,
 	_self.availableStickers = availableStickers != null ? availableStickers : new Array()
-	_self.stickersForReceivingFromPeer = stickersForReceivingFromPeer != null ? stickersForReceivingFromPeer : new Array();
-	_self.stickersForGivingToPeer = stickersForGivingToPeer != null ? stickersForGivingToPeer : new Array();
+	_self.stickersForReceivingFromPeer = new Array();
+	_self.stickersForGivingToPeer = new Array();
+	_self.firstMessage = firstMessage;
 };
 
 //***** VIEW VIEWMODELS ******//
@@ -250,22 +251,43 @@ function AppViewModel() {
 	_self.mqttClient = null;
 	_self.mqttConnected =  ko.observable(false);
 	_self.mainTopicName = "/main/notclassified";
+	_self.publishErrorCount = 0;
 
 	_self.receivedStickersInfo = new Array();
-	_self.selectedReceivedStickersInfo = null;
 	// /END OF ____model stuff
 
-	
+
 	//views ~ <section>
+	//Do smart assynchronous publishing
+	_self.lastDirtyTime = new Date().getTime();
+	_self.stickersUpdateTimerActivated = false;
+	_self.handleStickersUpdate = function() {
+		var timeSinceLastDirtyUpdate = new Date().getTime()-_self.lastDirtyTime;
+		if(timeSinceLastDirtyUpdate > 4000) {
+			_self.publishStickersInfoToServer(false)
+			_self.recalculateStickersInfoRanking();
+		} else {
+			//if nothing else happens, do the real publishing
+			if(!_self.stickersUpdateTimerActivated) {
+				window.setTimeout(
+					function() {
+						_self.publishStickersInfoToServer(false)
+						_self.recalculateStickersInfoRanking();
+						_self.stickersUpdateTimerActivated = false;
+					}, 4000);
+				_self.stickersUpdateTimerActivated = true;
+			}
+		}
+		_self.lastDirtyTime = new Date().getTime();
+	}
+
 	//#1 - needed stickers
 	_self.viewNeededStickers = new SelectableItemsViewModel(1, "Figurinhas Faltando", "needed-stickers", _defaultItems1);
-	_self.viewNeededStickers.subscribeToChanges(function() {_self.publishStickersInfoToServer()});
-	_self.viewNeededStickers.subscribeToChanges(function() {_self.recalculateStickersInfoRanking()});
+	_self.viewNeededStickers.subscribeToChanges(_self.handleStickersUpdate);
 
 	//#2 - available stickers
 	_self.viewAvailableStickers = new SelectableItemsViewModel(2, "Figurinhas Repetidas", "available-stickers", _defaultItems2);
-	_self.viewAvailableStickers.subscribeToChanges(function() {_self.publishStickersInfoToServer()});
-	_self.viewAvailableStickers.subscribeToChanges(function() {_self.recalculateStickersInfoRanking()});
+	_self.viewAvailableStickers.subscribeToChanges(_self.handleStickersUpdate);
 
 	//#3 - connect form
 	_self.viewConnect = new ConnectViewModel(4, "Conectando-se");
@@ -361,11 +383,11 @@ function AppViewModel() {
 
 	_self.connectAndPublishSelfInfo = function() {
 		_self.connectToMQTTServer(_self.mainTopicName, function() {
-			_self.publishStickersInfoToServer();
+			_self.publishStickersInfoToServer(true);
 		});
 	}
 
-	_self.publishStickersInfoToServer = function() {
+	_self.publishStickersInfoToServer = function(firstMessage) {
 		if(_self.mqttConnected()) {
 			console.log("Preparing stickers info...");
 			var stickersInfo = new StickersInfo(_self.clientUUID,
@@ -374,12 +396,37 @@ function AppViewModel() {
 				_self.viewConnect.place.peek(),
 				_self.viewConnect.selfInfo.peek(),
 				_self.getOnlySelectedItems(_self.viewNeededStickers.items()),
-				_self.getOnlySelectedItems(_self.viewAvailableStickers.items())
+				_self.getOnlySelectedItems(_self.viewAvailableStickers.items()),
+				firstMessage
 				//stickersForReceivingFromPeer: Array - used later during ranking calculations
 				//stickersForGivingToPeer: Array - used later during ranking calculations
 			);
-			console.log("Publishing stickers info to MQTT server...");
-			_self.publishToMQTTServer(_self.mainTopicName, JSON.stringify(stickersInfo));
+
+			try {
+				console.log("Publishing stickers info to MQTT server...");
+				_self.publishToMQTTServer(_self.mainTopicName, JSON.stringify(stickersInfo));
+				_self.publishErrorCount = 0;
+				
+			} catch (e) {
+				_self.publishErrorCount++;
+				console.log(e);
+				try {
+					_self.disconnectFromMQTTServer();
+				} catch (a) {
+					console.log(e);
+				}
+				
+				//do not try again
+				if(_self.publishErrorCount>5) {
+					console.log("Attempted 5 times to reconnect to server without success. Aborting.");
+					
+				//try again
+				} else {
+					console.log("Attemping to reconnect to server. errorCount=" + _self.publishErrorCount);
+					_self.connectAndPublishSelfInfo();
+				}
+			}
+
 		} else {
 			console.log("Not connected to server");
 		}
@@ -413,10 +460,12 @@ function AppViewModel() {
 		localStorage["nickname"] = _self.viewConnect.nickname();
 		localStorage["place"] = _self.viewConnect.place();
 		localStorage["selfInfo"] = _self.viewConnect.selfInfo();
+		_self.receivedStickersInfo = new Array();
 
 		//connect to mqtt server
 		_self.disconnectFromMQTTServer();
 		_self.mqttClient = new Messaging.Client("23.227.177.176/mqtt", 80, new Date().getTime()+"");
+//		_self.mqttClient = new Messaging.Client("23.227.177.176", 61623, new Date().getTime()+"");
 		var options = {
 			timeout : 10,
 			onSuccess : function() {
@@ -457,9 +506,15 @@ function AppViewModel() {
 						index = i;
 					}
 				}
-				
+	
+				//remove previous results from this peer			
 				if(index > -1) {
 					_self.receivedStickersInfo.splice(index,1);
+				}
+
+				//if this is the first message from sender, send self stickers to him
+				if(stickersInfo.firstMessage) {
+					_self.publishStickersInfoToServer(false);
 				}
 				
 				_self.receivedStickersInfo.push(stickersInfo);
@@ -493,25 +548,29 @@ function AppViewModel() {
 				receivedStickerInfo.stickersForGivingToPeer = new Array();
 		
 				//find stickers that the current user could get from other peers
-				for(var j=0; j<_self.viewNeededStickers.items().length; j++) {
-					var neededStickerByUser = _self.viewNeededStickers.items()[j];
+				var filteredNeedStickersModelItems = _self.getOnlySelectedItems(_self.viewNeededStickers.items());
+				for(var j=0; j<filteredNeedStickersModelItems.length; j++) {
+					var neededStickerByUser = filteredNeedStickersModelItems[j];
 			
 					for(var k=0; k<receivedStickerInfo.availableStickers.length; k++) {
 						var availableStickerFromPeer = receivedStickerInfo.availableStickers[k];
-						if(neededStickerByUser.number==availableStickerFromPeer.number && neededStickerByUser.selected()) {
+						if(neededStickerByUser.number==availableStickerFromPeer.number) {
 							receivedStickerInfo.stickersForReceivingFromPeer.push(neededStickerByUser);
+							break;
 						}
 					}
 				}
 
 				//find stickers that the current user could give to other peers
-				for(var j=0; j<_self.viewAvailableStickers.items().length; j++) {
-					var availableStickerByUser = _self.viewAvailableStickers.items()[j];
+				var filteredAvailableStickersModelItems = _self.getOnlySelectedItems(_self.viewAvailableStickers.items());
+				for(var j=0; j<filteredAvailableStickersModelItems.length; j++) {
+					var availableStickerByUser = filteredAvailableStickersModelItems[j];
 			
 					for(var k=0; k<receivedStickerInfo.neededStickers.length; k++) {
 						var neededStickerFromPeer = receivedStickerInfo.neededStickers[k];
-						if(availableStickerByUser.number==neededStickerFromPeer.number && availableStickerByUser.selected()) {
+						if(availableStickerByUser.number==neededStickerFromPeer.number) {
 							receivedStickerInfo.stickersForGivingToPeer.push(availableStickerByUser);
+							break;
 						}
 					}
 				}
@@ -521,9 +580,9 @@ function AppViewModel() {
 			if(_self.receivedStickersInfo.length>0) {
 				_self.receivedStickersInfo.sort(function(left,right) {
 					if(left.stickersForReceivingFromPeer.length > right.stickersForReceivingFromPeer.length) {
-						return 1;
-					} else {
 						return -1;
+					} else {
+						return 1;
 					}
 				});
 				
@@ -534,7 +593,7 @@ function AppViewModel() {
 				}
 			}
 		}
-
+				
 	}
 
 }
