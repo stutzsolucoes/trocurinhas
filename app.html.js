@@ -269,9 +269,9 @@ function AppViewModel() {
 
 	//#3 - connect form
 	_self.viewConnect = new ConnectViewModel(4, "Conectando-se");
-	_self.viewConnect.nickname = localStorage["nickname"] === undefined ? null : ko.observable(localStorage["nickname"]);
-	_self.viewConnect.place = localStorage["place"] === undefined ? null : ko.observable(localStorage["place"]);
-	_self.viewConnect.selfInfo = localStorage["selfInfo"] === undefined ? null : ko.observable(localStorage["selfInfo"]);
+	_self.viewConnect.nickname = localStorage["nickname"] === undefined ? ko.observable() : ko.observable(localStorage["nickname"]);
+	_self.viewConnect.place = localStorage["place"] === undefined ? ko.observable() : ko.observable(localStorage["place"]);
+	_self.viewConnect.selfInfo = localStorage["selfInfo"] === undefined ? ko.observable() : ko.observable(localStorage["selfInfo"]);
 
 	//#4 - list with people in the same neighborhood
 	_self.viewNearPeople = new NearPeopleViewModel(5, "Pessoas próximas");
@@ -373,8 +373,8 @@ function AppViewModel() {
 				_self.viewConnect.nickname.peek(),
 				_self.viewConnect.place.peek(),
 				_self.viewConnect.selfInfo.peek(),
-				_self.getOnlySelectedItems(_self.viewNeededStickers.items),
-				_self.getOnlySelectedItems(_self.viewAvailableStickers.items)
+				_self.getOnlySelectedItems(_self.viewNeededStickers.items()),
+				_self.getOnlySelectedItems(_self.viewAvailableStickers.items())
 				//stickersForReceivingFromPeer: Array - used later during ranking calculations
 				//stickersForGivingToPeer: Array - used later during ranking calculations
 			);
