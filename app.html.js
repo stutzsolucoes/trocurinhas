@@ -463,7 +463,10 @@ function AppViewModel() {
 		localStorage["nickname"] = _self.viewConnect.nickname();
 		localStorage["place"] = _self.viewConnect.place();
 		localStorage["selfInfo"] = _self.viewConnect.selfInfo();
+
+		//clear previous known people
 		_self.receivedStickersInfo = new Array();
+		_self.viewNearPeople.connectedPeople.removeAll();
 
 		//connect to mqtt server
 		_self.disconnectFromMQTTServer();
@@ -606,9 +609,3 @@ function AppViewModel() {
 }
 
 //***** /end of VIEW VIEWMODELS ******//
-
-
-
-
-
-
