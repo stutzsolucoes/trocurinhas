@@ -225,7 +225,7 @@ function AppViewModel() {
 
 	//____model stuff
 	var _defaultItems1 = new Array();
-	for ( var i = 1; i <= 600; i++) {
+	for ( var i = 1; i <= 639; i++) {
 		_defaultItems1.push({
 			number : i,
 			selected : false
@@ -233,7 +233,7 @@ function AppViewModel() {
 	}
 
 	var _defaultItems2 = new Array();
-	for ( var i = 1; i <= 600; i++) {
+	for ( var i = 1; i <= 639; i++) {
 		_defaultItems2.push({
 			number : i,
 			selected : false
@@ -249,6 +249,8 @@ function AppViewModel() {
 
 	//MQTT Stuff
 	_self.mqttClient = null;
+	_self.mqttConnecting =  ko.observable(false);
+	_self.mqttTimeOfLastConnectionStart = null;
 	_self.mqttConnected =  ko.observable(false);
 	_self.mainTopicName = "/main/notclassified";
 	_self.publishErrorCount = 0;
@@ -449,6 +451,7 @@ function AppViewModel() {
 				_self.mqttClient.disconnect();
 				_self.mqttClient = null;
 				_self.mqttConnected(false);
+				_self.mqttConnecting(false);
 	 		} catch (e) {
 	 			console.log(e);
 	 		}
@@ -470,6 +473,7 @@ function AppViewModel() {
 			timeout : 10,
 			onSuccess : function() {
 				try {
+					_self.mqttConnecting(false);
 					_self.mqttConnected(true);
 					console.log("Subscribing to '"+mainTopicName+"'...");
 					_self.mqttClient.subscribe(mainTopicName);
@@ -481,6 +485,7 @@ function AppViewModel() {
 				}
 			},
 			onFailure : function(responseObject) {
+				_self.mqttConnecting(false);
 				_self.mqttConnected(false);
 				console.log("Failure:"+responseObject.errorCode+" "+responseObject.errorMessage);
 			},
@@ -524,11 +529,13 @@ function AppViewModel() {
 			}
 		};
 		
-		_self.onConnectionLost = function(message) {
+		_self.onConnectionLost = function(message) {_self.mqttConnecting(false);
 			console.log("Connection lost:"+message.errorCode + " " +responseObject.errorMessage);
+			_self.disconnectFromMQTTServer();
 		};
 
 		console.log("Connecting to MQTT server...");
+		_self.mqttConnecting(true);
 		_self.mqttClient.connect(options);
 	}
 

@@ -9,6 +9,8 @@
 	<meta name="author" content="Stutz Soluções">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
   <link rel="stylesheet" href="css/reset.css">
 
@@ -124,7 +126,12 @@
             <div class="input-subtitle">Ex.: Boné vermelho / http://fb.com/jbatista</div>
           </div>
 
-          <button type="submit">Conectar</button>
+          <div data-bind="visible: !$root.mqttConnecting()">
+            <button type="submit">Conectar</button>
+          </div>
+          <div data-bind="visible: $root.mqttConnecting()">
+            <button disabled="true">Conectando...</button>
+          </div>
 
         </form>
 
