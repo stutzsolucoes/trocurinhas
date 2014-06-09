@@ -16,9 +16,9 @@ StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, needed
 	var _self = this;
 	_self.clientUUID = clientUUID,
 	_self.time = timeParam,
-	_self.nickname = nickname,
-	_self.place = place,
-	_self.selfInfo = selfInfo,
+	_self.nickname = nickname!=null?nickname:"",
+	_self.place = place!=null?place:"",
+	_self.selfInfo = selfInfo!=null?selfInfo:"",
 	_self.neededStickers = neededStickers != null ? neededStickers : new Array() ,
 	_self.availableStickers = availableStickers != null ? availableStickers : new Array()
 	_self.stickersForReceivingFromPeer = new Array();
@@ -26,74 +26,8 @@ StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, needed
 	_self.firstMessage = firstMessage;
 };
 
+
 //***** VIEW VIEWMODELS ******//
-/** -- INTERNAL VIEW MODELS -- **/
-//sections view interaction
-InteractionModelState = function(view, cancelButtonText, confirmButtonText, onenter, onexit) {
-	this.view = view;
-	this.cancelButtonText = typeof cancelButtonText !== 'undefined' ? cancelButtonText : null;
-	this.confirmButtonText = typeof confirmButtonText !== 'undefined' ? confirmButtonText : null;
-	this.onenter	= typeof onenter !== 'undefined' ? onenter : null;
-	this.onexit	= typeof onexit !== 'undefined' ? onexit : null;
-}
-InteractionModelTransition = function(fromState, toState, trigger, onactivate) {
-	this.fromState = fromState;
-	this.toState = toState;
-	this.trigger = trigger;
-	this.onactivate	= typeof onactivate === 'function' ? onactivate : null;
-}
-InteractionModel = function(globalViewModel, interactionId, defaultState) {		
-	var _self = this;
-
-	_self.parentViewModel = globalViewModel;
-	_self.id = interactionId;
-
-	//The app presents one view (state) at a time. Just initializing; it will be handled by interaction models
-	_self.currentState = ko.observable(defaultState); 
-
-	_self.transitions = new Array();
-	_self.addTransition = function(fromState, toState, trigger, onactivate) {
-		_self.transitions.push(new InteractionModelTransition(fromState, toState, trigger, onactivate));
-	}
-
-	_self.triggerTransition = function(actionTrigger) {
-		foundTransition = $(_self.transitions).filter(function() {
-			return (this.fromState.view==_self.currentState().view && this.trigger==actionTrigger);
-		});
-		if (foundTransition.length!=1) {
-			alert("erro na montagem da maquina de estados da interação");
-			return false;
-		}
-
-		if (typeof foundTransition[0].fromState.onexit === 'function') {
-			foundTransition[0].fromState.onexit();
-		}
-		if (typeof foundTransition[0].onactivate === 'function') {
-			foundTransition[0].onactivate();
-		}
-
-		if (foundTransition[0].toState!=null) { 
-			if (typeof foundTransition[0].toState.onenter === 'function') {
-				foundTransition[0].toState.onenter();
-			}
-			_self.currentState(foundTransition[0].toState);
-		}else{ //if found a transititon but the 'toState' is null, then it changes the interaction to the AppModel default interaction
-			_self.parentViewModel.openDefaultInteraction();
-		}
-
-	}
-	_self.confirmAction = function() {
-		_self.triggerTransition("confirm");
-	}
-	_self.cancelAction = function() {
-		_self.triggerTransition("cancel");
-	}
-
-	_self.bring = function() {
-		_self.parentViewModel.currentInteraction(_self);		
-	}
-}
-
 /** SELECTABLE ITEMS MODEL - Needed and Available Stickers * */
 function SelectableItemsViewModel(viewId, viewPageTitle, storageName0, defaultItems) {
 	var _self = this;
@@ -247,13 +181,64 @@ function AppViewModel() {
 		localStorage["clientUUID"] = _self.clientUUID;
 	}
 
-	//MQTT Stuff
-	_self.mqttClient = null;
+	//MQTT connection manager setup
+	_self.mqttConnectionManager = new MQTTConnectionManager(
+										"gostutz.com/mqtt", false, "user", "user", 
+										10, 25, 0, 2000);
+	_self.mqttConnectionManager.onConnectingToTargetServer = function() {
+		_self.mqttConnecting(true);
+	}
+	_self.mqttConnectionManager.onConnectedToTargetServer = function() {
+		_self.mqttConnecting(false);
+		_self.mqttConnected(true);
+		_self.publishStickersInfoToServer(true);
+	}
+	_self.mqttConnectionManager.onDisconnectedFromServer = function() {
+		_self.mqttConnected(false);
+		_self.mqttConnecting(false);
+	}
+
+	_self.mqttConnectionManager.subscribeToTopic("/main/notclassified");
+	_self.mqttConnectionManager.subscribeToTopic("/clients/" + _self.clientUUID);
+
+	_self.mqttConnectionManager.onMessageArrived = function(message) {
+		try {
+			console.log("Message arrived: " + message.payloadString);
+			stickersInfo = JSON.parse(message.payloadString);
+
+			if (stickersInfo.clientUUID === _self.clientUUID) {
+				return;
+			}
+			stickersInfo.timeElapsedInfo = ko.observable("Há poucos segundos");
+			
+			//remove previous results from peer
+			var index = -1;
+			for(var i=0; i<_self.receivedStickersInfo.length; i++) {
+				if(stickersInfo.clientUUID==_self.receivedStickersInfo[i].clientUUID) {
+					index = i;
+					break;
+				}
+			}
+
+			//remove previous results from this peer			
+			if(index > -1) {
+				_self.receivedStickersInfo.splice(index,1);
+			}
+
+			//if this is the first message from sender, send self stickers to him
+			if(stickersInfo.firstMessage) {
+				_self.publishStickersInfoToServer(false);
+			}
+			
+			_self.receivedStickersInfo.push(stickersInfo);
+			_self.recalculateStickersInfoRanking();
+		} catch(e) {
+			console.log(e);
+		}
+	};
+
 	_self.mqttConnecting =  ko.observable(false);
-	_self.mqttTimeOfLastConnectionStart = null;
 	_self.mqttConnected =  ko.observable(false);
-	_self.mainTopicName = "/main/notclassified";
-	_self.publishErrorCount = 0;
 
 	_self.receivedStickersInfo = new Array();
 	// /END OF ____model stuff
@@ -333,7 +318,9 @@ function AppViewModel() {
 	_self.interactionExchangeNow.addTransition(connectingState, chosingPeerState, "connected");
 	_self.interactionExchangeNow.addTransition(chosingPeerState, exchangingState, "exchange");
 	_self.interactionExchangeNow.addTransition(chosingPeerState, connectingState, "cancel", function() {
-		_self.disconnectFromMQTTServer();
+		if(_self.mqttConnectionManager.isMaintainingConnectionToServer()) {
+			_self.mqttConnectionManager.disconnectFromServer();
+		}
 	});
 	_self.interactionExchangeNow.addTransition(exchangingState, chosingPeerState, "cancel");
 	
@@ -383,14 +370,22 @@ function AppViewModel() {
 	}, 5000);
 
 
-	_self.connectAndPublishSelfInfo = function() {
-		_self.connectToMQTTServer(_self.mainTopicName, function() {
-			_self.publishStickersInfoToServer(true);
-		});
+	_self.connectToMQTTServer = function() {
+			//store info for later use
+		localStorage["nickname"] = _self.viewConnect.nickname();
+		localStorage["place"] = _self.viewConnect.place();
+		localStorage["selfInfo"] = _self.viewConnect.selfInfo();
+
+		//clear previous known people
+		_self.receivedStickersInfo = new Array();
+		_self.viewNearPeople.connectedPeople.removeAll();
+
+		//connect to mqtt server
+		_self.mqttConnectionManager.connectToServer();
 	}
 
 	_self.publishStickersInfoToServer = function(firstMessage) {
-		if(_self.mqttConnected()) {
+		if(_self.mqttConnectionManager.isMaintainingConnectionToServer()) {
 			console.log("Preparing stickers info...");
 			var stickersInfo = new StickersInfo(_self.clientUUID,
 				new Date().getTime(),
@@ -404,30 +399,8 @@ function AppViewModel() {
 				//stickersForGivingToPeer: Array - used later during ranking calculations
 			);
 
-			try {
-				console.log("Publishing stickers info to MQTT server...");
-				_self.publishToMQTTServer(_self.mainTopicName, JSON.stringify(stickersInfo));
-				_self.publishErrorCount = 0;
-				
-			} catch (e) {
-				_self.publishErrorCount++;
-				console.log(e);
-				try {
-					_self.disconnectFromMQTTServer();
-				} catch (a) {
-					console.log(e);
-				}
-				
-				//do not try again
-				if(_self.publishErrorCount>5) {
-					console.log("Attempted 5 times to reconnect to server without success. Aborting.");
-					
-				//try again
-				} else {
-					console.log("Attemping to reconnect to server. errorCount=" + _self.publishErrorCount);
-					_self.connectAndPublishSelfInfo();
-				}
-			}
+			console.log("Publishing stickers info to MQTT server...");
+			_self.mqttConnectionManager.publishMessage("/main/notclassified", JSON.stringify(stickersInfo));
 
 		} else {
 			console.log("Not connected to server");
@@ -442,110 +415,6 @@ function AppViewModel() {
 			}
 		}
 		return result;
-	}
-
-	_self.disconnectFromMQTTServer = function() {
-		if(_self.mqttClient!=null) {
-			console.log("Disconnecting from MQTT server...");
-			try {
-				_self.mqttClient.disconnect();
-				_self.mqttClient = null;
-				_self.mqttConnected(false);
-				_self.mqttConnecting(false);
-	 		} catch (e) {
-	 			console.log(e);
-	 		}
-	 	}
-	}
-
-	_self.connectToMQTTServer = function(mainTopicName, onSuccess) {
-		//store info for later use
-		localStorage["nickname"] = _self.viewConnect.nickname();
-		localStorage["place"] = _self.viewConnect.place();
-		localStorage["selfInfo"] = _self.viewConnect.selfInfo();
-
-		//clear previous known people
-		_self.receivedStickersInfo = new Array();
-		_self.viewNearPeople.connectedPeople.removeAll();
-
-		//connect to mqtt server
-		_self.disconnectFromMQTTServer();
-		_self.mqttClient = new Messaging.Client("23.227.177.176/mqtt", 80, new Date().getTime()+"");
-//		_self.mqttClient = new Messaging.Client("23.227.177.176", 61623, new Date().getTime()+"");
-		var options = {
-			timeout : 10,
-			onSuccess : function() {
-				try {
-					_self.mqttConnecting(false);
-					_self.mqttConnected(true);
-					console.log("Subscribing to '"+mainTopicName+"'...");
-					_self.mqttClient.subscribe(mainTopicName);
-					if(onSuccess) {
-						onSuccess.call();
-					}
-				} catch (e) {
-					console.log(e);
-				}
-			},
-			onFailure : function(responseObject) {
-				_self.mqttConnecting(false);
-				_self.mqttConnected(false);
-				console.log("Failure:"+responseObject.errorCode+" "+responseObject.errorMessage);
-			},
-			userName: "user",
-			password: "user",
-			useSSL: false
-		};
-
-		_self.mqttClient.onMessageArrived = function(message) {
-			try {
-				console.log("Message arrived: " + message.payloadString);
-				stickersInfo = JSON.parse(message.payloadString);
-
-				if (stickersInfo.clientUUID === _self.clientUUID) {
-					return;
-				}
-				stickersInfo.timeElapsedInfo = ko.observable("Há poucos segundos");
-				
-				//remove previous results from peer
-				var index = -1;
-				for(var i=0; i<_self.receivedStickersInfo.length; i++) {
-					if(stickersInfo.clientUUID==_self.receivedStickersInfo[i].clientUUID) {
-						index = i;
-					}
-				}
-	
-				//remove previous results from this peer			
-				if(index > -1) {
-					_self.receivedStickersInfo.splice(index,1);
-				}
-
-				//if this is the first message from sender, send self stickers to him
-				if(stickersInfo.firstMessage) {
-					_self.publishStickersInfoToServer(false);
-				}
-				
-				_self.receivedStickersInfo.push(stickersInfo);
-				_self.recalculateStickersInfoRanking();
-			} catch(e) {
-				console.log(e);
-			}
-		};
-		
-		_self.onConnectionLost = function(message) {_self.mqttConnecting(false);
-			console.log("Connection lost:"+message.errorCode + " " +responseObject.errorMessage);
-			_self.disconnectFromMQTTServer();
-		};
-
-		console.log("Connecting to MQTT server...");
-		_self.mqttConnecting(true);
-		_self.mqttClient.connect(options);
-	}
-
-	_self.publishToMQTTServer = function(topicName, payload) {
-		var message = new Messaging.Message(payload);
-		message.destinationName = topicName;
-		_self.mqttClient.send(message); 
 	}
 
 	_self.recalculateStickersInfoRanking = function() {

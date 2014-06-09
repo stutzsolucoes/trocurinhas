@@ -13,20 +13,20 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
   <link rel="stylesheet" href="css/reset.css">
-
 	<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400|Cabin+Condensed:400,700|Arimo:400,700' rel='stylesheet' type='text/css'>
 
-
-	<script src="js/knockout-min.js"></script>
-	<script	src="js/jquery.min.js"></script>
 <!--
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
 	<script	src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<script	src="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.2/jquery.mobile.min.js"></script>
 -->
 	<link rel="stylesheet" href="app.html.css">
-	<script src="app.html.js"></script>
-	<script src="js/mqttws31.js"></script>
+  <script src="js/mqttws31.js"></script>
+  <script src="js/knockout-min.js"></script>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/MQTTConnectionManager.js"></script>
+  <script src="js/InteractionModel.js"></script>
+  <script src="app.html.js"></script>
 
 	<!--[if lt IE 9]>
 		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -109,7 +109,7 @@
 			Não é preciso se cadastrar! Preencha o formulário abaixo e o aplicativo listará pessoas que estão no mesmo bairro que você querendo trocar as figurinhas           </aside>
         </header> 
 
-        <form class="form-connect" data-bind="submit: $root.connectAndPublishSelfInfo">
+        <form class="form-connect" data-bind="submit: $root.connectToMQTTServer">
           
           <div class="form-field">
             <input type="text" placeholder="Nome ou Apelido" data-bind="value: nickname" />
