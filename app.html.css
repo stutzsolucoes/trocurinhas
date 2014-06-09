@@ -5,6 +5,7 @@ html {
 	font-family: 'Arimo', 'Source Sans Pro', 'Droid Sans', helvetica, arial;
 	font-weight: 400;
 	color: #444;
+	overflow-x: hidden; 
 }
 body {
 	background: #F3F3F3;
@@ -19,6 +20,10 @@ article {
 }
 article.fullscreen {
 	top: 0px;
+}
+section {
+	position: absolute;
+	width:100%;
 }
 header.app-header,
 footer.app-footer {
