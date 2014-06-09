@@ -191,10 +191,12 @@ function AppViewModel() {
 	_self.mqttConnectionManager.onConnectedToTargetServer = function() {
 		_self.mqttConnecting(false);
 		_self.mqttConnected(true);
+		localStorage["connectedToServer"] = true;
 		_self.publishStickersInfoToServer(true);
 	}
 	_self.mqttConnectionManager.onDisconnectedFromServer = function() {
 		_self.mqttConnected(false);
+		localStorage["connectedToServer"] = false;
 		_self.mqttConnecting(false);
 	}
 
@@ -343,7 +345,9 @@ function AppViewModel() {
 	_self.firstTimeRunning(false); //
 	if (_self.firstTimeRunning()) {
 		_self.currentInteraction = ko.observable(_self.interactionWelcome);
-	}else{
+    } else if(localStorage["connectedToServer"]) {
+		_self.currentInteraction = ko.observable(_self.interactionExchangeNow);
+	} else {
 		_self.currentInteraction = ko.observable(_self.interactionNeededStickers);
 	}
 
