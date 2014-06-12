@@ -217,6 +217,14 @@ footer.app-footer nav ul li.active div{
 	color: white;
 }
 
+#trocar-agora section.pessoas .mensagens {
+	margin-top: 10px;
+	text-align: center;
+	font-size: .83rem;
+	color: #666;
+	font-style: italic;
+}
+
 .lista-figurinhas ul{
 	display: table;
 }
@@ -263,13 +271,17 @@ footer.app-footer nav ul li.active div{
 	background-color: #FAFAFA;
 }
 .lista-figurinhas-procuradas .figurinha button.selected,
-.figurinha-procurada button.selected {
+.figurinha-procurada button.selected,
+.lista-figurinhas-procuradas .figurinha button:active,
+.figurinha-procurada button:active {
 	color: white;
 	background-color: #A75353;
 	-moz-text-shadow: 1px 1px 1px #A75353;
 	-webkit-text-shadow: 1px 1px 1px #A75353;
 	text-shadow: 1px 1px 1px #A75353;
 }
+.lista-figurinhas-repetidas .figurinha button:active,
+.figurinha-repetida button:active,
 .lista-figurinhas-repetidas .figurinha button.selected,
 .figurinha-repetida button.selected {
 	color: white;
@@ -383,7 +395,6 @@ footer.app-footer nav ul li.active div{
 #trocar-agora .arena-troca .subtitle {	
 	float:left;
 	width: 45%;
-	margin-top: 25px;
 }
 #trocar-agora .arena-troca .subtitle nav div{
     font-weight: 300;
@@ -398,6 +409,24 @@ footer.app-footer nav ul li.active div{
 	padding-right: 4px;
 	margin: 0px;
 }
+#trocar-agora .arena-troca .subtitle div.enviar-msg {
+	margin-top: 10px;
+}	
+#trocar-agora .arena-troca .subtitle span.button-enviar-msg {
+	background: #FFFFFF;
+	padding: 3px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	color: rgb(135, 189, 107);
+	border: 1px solid rgb(135, 189, 107);
+	cursor: pointer;
+}
+#trocar-agora .arena-troca .subtitle span.button-enviar-msg:hover,
+#trocar-agora .arena-troca .subtitle span.button-enviar-msg:active {
+	background: rgb(135, 189, 107);
+	color: white;
+}
 #trocar-agora .arena-troca .needed-subtitle {
 	background: #A75353;
 	border: 1px solid #A75353;
@@ -407,3 +436,4 @@ footer.app-footer nav ul li.active div{
 	border: 1px solid #8BA284;
 	margin-right: 8px;
 }
+

@@ -24,6 +24,7 @@
   <script src="js/mqttws31.js"></script>
   <script src="js/knockout-min.js"></script>
   <script src="js/jquery.min.js"></script>
+  <script src="js/ko.customBindings.js"></script>
   <script src="js/MQTTConnectionManager.js"></script>
   <script src="js/InteractionModel.js"></script>
   <script src="app.html.js"></script>
@@ -102,7 +103,7 @@
 
     <article id="trocar-agora" data-bind="visible: currentInteraction() == interactionExchangeNow, with: interactionExchangeNow">
 
-      <section data-bind="with: $root.viewConnect, visible: currentState().view == $root.viewConnect">
+      <section data-bind="with: $root.viewConnect, visibleOutIn: currentState().view == $root.viewConnect">
 
         <header>
           <aside>
@@ -137,7 +138,10 @@
 
       </section>
 
-      <section class="pessoas" data-bind="with: $root.viewNearPeople, visible: currentState().view == $root.viewNearPeople">
+      <section class="pessoas" data-bind="with: $root.viewNearPeople, visibleInOut: currentState().view == $root.viewNearPeople">
+          
+          <div class="mensagens" data-bind="visible: connectedPeople().length == 0">Nenhuma pessoa conectada no momento</div>
+
           <ul data-bind="foreach: connectedPeople">
             <li data-bind="click: $parent.selectPeer">
 
@@ -166,7 +170,7 @@
           </ul>
       </section>  
 
-      <section class="arena-troca" data-bind="with: $root.viewExchangingArena, visible: currentState().view == $root.viewExchangingArena">
+      <section class="arena-troca" data-bind="with: $root.viewExchangingArena, visibleRightIn: currentTransition().id == 2, visibleRightOut: currentTransition().id == 4,  visibleLeftOut: currentTransition().id == 5, visibleLeftIn: currentTransition().id == 6">
           <div class="identificacao">
             <h2 data-bind="text: currentPeer().nickname"></h2>
             <h3>
@@ -184,7 +188,9 @@
               <div>
                 Ele precisa <span class="available-subtitle" data-bind="text: currentPeer().stickersForGivingToPeer.length"></span>
               </div>
-
+              <div class="enviar-msg">  
+                <span class="button-enviar-msg" data-bind="click: $root.currentInteraction().confirmAction">enviar mensagem</span>              
+              </div>  
             </nav>
           </div>
 
@@ -202,6 +208,9 @@
           </div>
       </section>
 
+       <section class="chatting" data-bind="with: $root.viewChat, visibleRightIn: currentTransition().id == 5, visibleRightOut: currentTransition().id == 6">
+          <textarea data-bind="value: message"></textarea>
+       </section>
     </article>
 
     <footer class="app-footer" data-bind="visible: !firstTimeRunning()">

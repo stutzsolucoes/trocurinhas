@@ -150,6 +150,16 @@ function ExchangingArenaViewModel(viewId, viewPageTitle) {
 	}
 }
 
+/** CHAT VIEW MODEL * */
+function ChatViewModel(viewId, viewPageTitle) {
+	var _self = this;
+	_self.id = viewId;
+	_self.pageTitle = viewPageTitle;
+	_self.currentPeer = ko.observable(new StickersInfo());
+	_self.message = ko.observable("");
+}
+
+
 /** end of -- INTERNAL VIEW MODELS -- **/
 
 /** -- GLOBAL VIEW MODEL -- **/
@@ -183,7 +193,7 @@ function AppViewModel() {
 
 	//MQTT connection manager setup
 	_self.mqttConnectionManager = new MQTTConnectionManager(
-										"gostutz.com/mqtt", false, "user", "user", 
+										"gostutz.com", 61623, false, "user", "user", 
 										10, 25, 0, 2000);
 	_self.mqttConnectionManager.onConnectingToTargetServer = function() {
 		_self.mqttConnecting(true);
@@ -290,6 +300,9 @@ function AppViewModel() {
 	//#5 - selecting stickers you want and you are giving
 	_self.viewExchangingArena = new ExchangingArenaViewModel(6, "Trocando Figurinhas");
 
+	//#6 - Conversando
+	_self.viewChat = new ChatViewModel(7, "Conversando");
+
 	// /END OF views ~ <section>
 
 	//section interaction ~ <article>
@@ -297,9 +310,9 @@ function AppViewModel() {
 	selectNeededStickersState = new InteractionModelState(_self.viewNeededStickers, null, "avançar");	
 	selectAvailableStickersState = new InteractionModelState(_self.viewAvailableStickers, "voltar", "concluir");
 	_self.interactionWelcome = new InteractionModel(_self, 1, selectNeededStickersState);	
-	_self.interactionWelcome.addTransition(selectNeededStickersState, selectAvailableStickersState, "confirm");
-	_self.interactionWelcome.addTransition(selectAvailableStickersState, selectNeededStickersState, "cancel");
-	_self.interactionWelcome.addTransition(selectAvailableStickersState, null, "confirm", function() {
+	_self.interactionWelcome.addTransition(selectNeededStickersState, selectAvailableStickersState, "confirm", 1);
+	_self.interactionWelcome.addTransition(selectAvailableStickersState, selectNeededStickersState, "cancel", 2);
+	_self.interactionWelcome.addTransition(selectAvailableStickersState, null, "confirm", 3, function() {
 		_self.firstTimeRunning(false);
 		localStorage["firstTimeFlag"] = 0;
 	});
@@ -316,15 +329,18 @@ function AppViewModel() {
 	connectingState = new InteractionModelState(_self.viewConnect);
 	chosingPeerState = new InteractionModelState(_self.viewNearPeople, "desconectar");
 	exchangingState = new InteractionModelState(_self.viewExchangingArena, "voltar");
+	chattingState = new InteractionModelState(_self.viewChat, "voltar");
 	_self.interactionExchangeNow = new InteractionModel(_self, 4, connectingState);
-	_self.interactionExchangeNow.addTransition(connectingState, chosingPeerState, "connected");
-	_self.interactionExchangeNow.addTransition(chosingPeerState, exchangingState, "exchange");
-	_self.interactionExchangeNow.addTransition(chosingPeerState, connectingState, "cancel", function() {
+	_self.interactionExchangeNow.addTransition(connectingState, chosingPeerState, "connected", 1);
+	_self.interactionExchangeNow.addTransition(chosingPeerState, exchangingState, "exchange", 2);
+	_self.interactionExchangeNow.addTransition(chosingPeerState, connectingState, "cancel", 3, function() {
 		if(_self.mqttConnectionManager.isMaintainingConnectionToServer()) {
 			_self.mqttConnectionManager.disconnectFromServer();
 		}
 	});
-	_self.interactionExchangeNow.addTransition(exchangingState, chosingPeerState, "cancel");
+	_self.interactionExchangeNow.addTransition(exchangingState, chosingPeerState, "cancel", 4);
+	_self.interactionExchangeNow.addTransition(exchangingState, chattingState, "confirm", 5);
+	_self.interactionExchangeNow.addTransition(chattingState, exchangingState, "cancel", 6);
 	
 	_self.viewNearPeople.selectedPeer.subscribe(function(newValue) {
 		if (newValue!=null) {

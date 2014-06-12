@@ -4,7 +4,7 @@
 //connected to the topics as soon as there is any kind of connectivity to the server, 
 //without any user action
 //author: Flávio Stutz@2014
-MQTTConnectionManager = function(serverHostname, useSSL, username, password, connectionTimeoutSeconds, connectionKeepaliveSeconds, maxRetries, timeBetweenRetriesMillis) {
+MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, username, password, connectionTimeoutSeconds, connectionKeepaliveSeconds, maxRetries, timeBetweenRetriesMillis) {
 	if(!Messaging.Client) {
 		throw "MQTTConnectionManager depends on Eclipse Paho javascript MQTT Client in order to work";
 	}
@@ -13,6 +13,7 @@ MQTTConnectionManager = function(serverHostname, useSSL, username, password, con
 
 	_self.topicNames = new Array();
 	_self.serverHostname = serverHostname;
+	_self.serverPortNumber = serverPortNumber;
 	_self.username = username;
 	_self.password = password;
 	_self.useSSL = useSSL;
@@ -105,7 +106,7 @@ MQTTConnectionManager = function(serverHostname, useSSL, username, password, con
 	};
 
 	_self._connectToTargetServer = function() {
-		console.log("Establishing connection to MQTT server " + _self.serverHostname + "...");
+		console.log("Establishing connection to MQTT server " + _self.serverHostname + ":" + _self.serverPortNumber + "...");
 		_self._isTargetServerConnected = false;//will confirm later
 		try {
 			_self.mqttClient.disconnect();
@@ -123,7 +124,7 @@ MQTTConnectionManager = function(serverHostname, useSSL, username, password, con
 	}
 
 	_self._disconnectFromTargetServer = function() {
-		console.log("Disconnecting from MQTT server " + _self.serverHostname + "...");
+		console.log("Disconnecting from MQTT server " + _self.serverHostname + ":" + _self.serverPortNumber + "...");
 		_self._isTargetServerConnected = false;
 		try {
 			_self.mqttClient.disconnect(_self.mqttConnectionOptions);
@@ -182,7 +183,7 @@ MQTTConnectionManager = function(serverHostname, useSSL, username, password, con
 	_self.connectToServer = function() {
 		console.log("Connecting to MQTT server. From now the connection will be reestablished when dropped.");
 		_self.mqttClient = new Messaging.Client(
-								_self.serverHostname, 80, 
+								_self.serverHostname, _self.serverPortNumber, 
 								new Date().getTime()+"");
 		_self.mqttClient.onConnectionLost = function(message) {
 			console.log("Connection lost from real MQTT server");
