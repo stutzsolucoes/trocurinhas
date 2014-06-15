@@ -485,4 +485,70 @@ footer.app-footer nav ul li.active div{
 	font-size: 0.92rem;
 	font-weight: bold;
 }
+
+#trocar-agora .chatting .his-message,
+#trocar-agora .chatting .my-message {
+	width: 100%;
+}
+#trocar-agora .chatting .his-message:after,
+#trocar-agora .chatting .my-message:after {
+	content: "";
+	display: table;
+	clear: both;
+}
+
+
+#trocar-agora .chatting .his-message .message,
+#trocar-agora .chatting .my-message .message{
+	padding: 5px;
+	display: table;
+	margin-top: 8px;
+	color: #333;
+	font-size: .94rem;
+	font-family: 'Source Sans Pro';
+	border: 1px solid #E0E0E0;
+}
+
+#trocar-agora .chatting .his-message .message{
+	float: left;
+	margin-right: 40px;
+	text-align: left;
+	background: white;
+	-moz-border-radius: 0px 8px 8px 8px;
+	-webkit-border-radius: 0px 8px 8px 8px;
+	border-radius: 0px 8px 8px 8px;
+}
+
+#trocar-agora .chatting .my-message .message{
+	float: right;
+	margin-left: 40px;
+	text-align: left;
+	background: rgb(102, 151, 78);
+	color: white;
+	-moz-border-radius: 8px 0px 8px 8px;
+	-webkit-border-radius: 8px 0px 8px 8px;
+	border-radius: 8px 0px 8px 8px;
+}
+#trocar-agora .chatting .his-message .message .message-time,
+#trocar-agora .chatting .my-message .message .message-time {
+	font-size: .65rem;
+	font-family: 'Cabin Condensed',sans-serif;
+}
+#trocar-agora .chatting .my-message .message .message-time {
+	color: #FAFAFA;
+}
+#trocar-agora .chatting .his-message .message .message-time {
+	font-size: .65rem;
+	color: #AAA;
+	text-shadow: 1px 1px 1px white;
+	font-family: 'Cabin Condensed',sans-serif;
+}
+
+#trocar-agora .chatting .my-message .message .message-sender-name {
+	display: none;
+}
+#trocar-agora .chatting .his-message .message .message-sender-name {
+	color: orange;
+	font-size: .95rem;
+	border-bottom: 1px solid #FAFAFA;
 }
