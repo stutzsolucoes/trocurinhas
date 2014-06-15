@@ -5,7 +5,6 @@ var cp = require('child_process');
 var n = cp.fork('./childProcess');
 
 var provider = require('./mqttProvider');
-var publicador = require('./publicador');
 var dbManager = require('./dbManager');
 
 var _self = this;
@@ -45,17 +44,8 @@ _self.cliente.on('message', function (topic, message) {
   dbManager.findAll(function(err, usuarios) {
     if(err == null) {
 
-      n.send({teste: 'teste'});
-
-      for (i = 0; i < usuarios.length; i++) {
-        var broadcastMsg = JSON.stringify(usuarios[i]);
-        // realizo a distribuição da mensagem
-        console.log('usuários recuperados !');
-        // publicador.publicar(broadcastMsg , '/clients/' + msgJSON.clientUUID , _self.cliente); 
-        console.log('mensagem publicada !')
-        console.log('índice: ' + i);
-      };
-
+      n.send({usuarios: usuarios, clientUUID: msgJSON.clientUUID});
+  
     } else {
     	console.log(err);
     }
