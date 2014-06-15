@@ -170,7 +170,7 @@
           </ul>
       </section>  
 
-      <section class="arena-troca" data-bind="with: $root.viewExchangingArena, visibleRightIn: currentTransition().id == 2, visibleRightOut: currentTransition().id == 4,  visibleLeftOut: currentTransition().id == 5, visibleLeftIn: currentTransition().id == 6">
+      <section class="arena-troca" data-bind="with: $root.viewExchangingArena, showRightIn: currentTransition().id == 2, hideRightOut: currentTransition().id == 4,  hideLeftOut: currentTransition().id == 5, showLeftIn: currentTransition().id == 6">
           <div class="identificacao">
             <h2 data-bind="text: currentPeer().nickname"></h2>
             <h3>
@@ -208,8 +208,36 @@
           </div>
       </section>
 
-       <section class="chatting" data-bind="with: $root.viewChat, visibleRightIn: currentTransition().id == 5, visibleRightOut: currentTransition().id == 6">
-          <textarea data-bind="value: message"></textarea>
+       <section class="chatting" data-bind="with: $root.viewChat, showRightIn: currentTransition().id == 5, hideRightOut: currentTransition().id == 6">
+          <div class="messages-container">
+            <div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div>
+            <div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+              <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+                <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+                  <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+                    <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+                      <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+                        <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+                          <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+
+
+            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+            <div class="his-messages">Ok. Espero seu e-mail...</div>
+          </div>
+          <div class="input-message-container">
+            <textarea class="chatting-textarea" data-bind="value: message" rows="1"></textarea>
+            <button data-bind="text: 'Enviar'"></button>
+          </div>
        </section>
     </article>
 
@@ -237,6 +265,32 @@
   <script>
     var vm = new AppViewModel();
     ko.applyBindings(vm);
+   jQuery("textarea").on('input.autosize', function(){ 
+      if (this.value==null || this.value.match(/\n/g)==null) {
+        this.rows = 1;
+      }else{
+        this.rows = this.value.match(/\n/g).length + 1 
+      }
+      jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");        
+    });
+
+    (function ($) {
+      $.each(['show', 'hide'], function (i, ev) {
+        var el = $.fn[ev];
+        $.fn[ev] = function () {
+          this.trigger(ev);
+          return el.apply(this, arguments);
+        };
+      });
+    })(jQuery);
+
+    jQuery(".chatting").on('show', function() {
+       jQuery(".messages-container").scrollTop(jQuery(document).height());
+    });
+
+    jQuery(window).on('resize', function(){
+      jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
+    });
   </script>
 
   <script>

@@ -85,7 +85,9 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 								console.log(e);
 							}
 						}
-						_self._connectToTargetServer();
+						if (_self.mqttClient!=null) {
+							_self._connectToTargetServer();
+						}
 					}, _self.timeBetweenRetriesMillis
 				);
 			} else {

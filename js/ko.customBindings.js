@@ -39,7 +39,7 @@ ko.bindingHandlers.visibleOutOut = {
   }
 }
 
-ko.bindingHandlers.visibleLeftIn = {
+ko.bindingHandlers.showLeftIn = {
   init: function(element, valueAccessor) {
     var value = valueAccessor();
     $(element).toggle(value);
@@ -49,11 +49,11 @@ ko.bindingHandlers.visibleLeftIn = {
     if (value) {
       $(element).show();
       $(element).css("left", "-100%");
-      $(element).animate({ left: '0%',}, 300)
+      $(element).animate({ left: '0%',}, 300);
     }
   }
 }
-ko.bindingHandlers.visibleLeftOut = {
+ko.bindingHandlers.hideLeftOut = {
   init: function(element, valueAccessor) {
     var value = valueAccessor();
     $(element).toggle(value);
@@ -68,7 +68,7 @@ ko.bindingHandlers.visibleLeftOut = {
   }
 }
 
-ko.bindingHandlers.visibleRightIn = {
+ko.bindingHandlers.showRightIn = {
   init: function(element, valueAccessor) {
     var value = valueAccessor();
     $(element).toggle(value);
@@ -82,7 +82,7 @@ ko.bindingHandlers.visibleRightIn = {
     }
   }
 }
-ko.bindingHandlers.visibleRightOut = {
+ko.bindingHandlers.hideRightOut = {
   init: function(element, valueAccessor) {
     var value = valueAccessor();
     $(element).toggle(value);

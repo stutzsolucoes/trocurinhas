@@ -217,11 +217,7 @@ function AppViewModel() {
 		try {
 			console.log("Message arrived: " + message.payloadString);
 			stickersInfo = JSON.parse(message.payloadString);
-
-			if (stickersInfo.clientUUID === _self.clientUUID) {
-				return;
-			}
-			stickersInfo.timeElapsedInfo = ko.observable("Há poucos segundos");
+			stickersInfo.timeElapsedInfo = ko.observable(_self.calculateElapsedTime(stickersInfo.time));
 			
 			//remove previous results from peer
 			var index = -1;
@@ -329,7 +325,9 @@ function AppViewModel() {
 	connectingState = new InteractionModelState(_self.viewConnect);
 	chosingPeerState = new InteractionModelState(_self.viewNearPeople, "desconectar");
 	exchangingState = new InteractionModelState(_self.viewExchangingArena, "voltar");
-	chattingState = new InteractionModelState(_self.viewChat, "voltar");
+	chattingState = new InteractionModelState(_self.viewChat, "voltar", null, function(){
+		jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
+	});
 	_self.interactionExchangeNow = new InteractionModel(_self, 4, connectingState);
 	_self.interactionExchangeNow.addTransition(connectingState, chosingPeerState, "connected", 1);
 	_self.interactionExchangeNow.addTransition(chosingPeerState, exchangingState, "exchange", 2);
@@ -371,23 +369,26 @@ function AppViewModel() {
 		_self.currentInteraction(_self.interactionNeededStickers);
 	}
 
+	_self.calculateElapsedTime = function(timeParam) {
+		var info = "";
+		var timeElapsed = new Date().getTime() - timeParam;
+		if(timeElapsed < 60000) {
+			info = "Há poucos segundos";
+		} else if(timeElapsed < 3600000) {
+			info = "Há "+ Math.ceil(timeElapsed/60000) +" minutos";
+		} else if(timeElapsed >= 3600000) {
+			info = "Há "+ Math.ceil(timeElapsed/3600000) +" horas";
+		}
+		return info;
+	}
 	//update elapsed time informations
 	window.setInterval(function() {
 		//add time messages
 		for(var i=0; i<_self.receivedStickersInfo.length; i++) {
  			var stickersInfo = _self.receivedStickersInfo[i];
-			var info = "";
-			var timeElapsed = new Date().getTime() - stickersInfo.time;
-			if(timeElapsed < 60000) {
-				info = "Há poucos segundos";
-			} else if(timeElapsed < 3600000) {
-				info = "Há "+ Math.ceil(timeElapsed/60000) +" minutos";
-			} else if(timeElapsed >= 3600000) {
-				info = "Há "+ Math.ceil(timeElapsed/3600000) +" horas";
-			}
-			stickersInfo.timeElapsedInfo(info);
+			stickersInfo.timeElapsedInfo(_self.calculateElapsedTime(stickersInfo.time));
 		}
-	}, 5000);
+	}, 50000);
 
 
 	_self.connectToMQTTServer = function() {
