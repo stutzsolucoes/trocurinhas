@@ -29,25 +29,25 @@ _self.cliente.on('message', function (topic, message) {
 	console.log('mensagem recebida !!!')
 	var msgJSON = JSON.parse(message);
 	console.log('mensagem do cliente: ' + msgJSON.clientUUID);
-  console.log('firstMessage: ' + msgJSON.firstMessage)
-  // Caso seja a primeira mensagem do usuário, inclui no mongoDB 
-  if(msgJSON.firstMessage) {
-    // persisto no mongoDB - Async
-    dbManager.save(msgJSON);
-  } else {
-    // atualizo no mongoDB - Async
-    dbManager.update(msgJSON , msgJSON.clientUUID);
-  }
+  	console.log('firstMessage: ' + msgJSON.firstMessage)
+  	// Caso seja a primeira mensagem do usuário, inclui no mongoDB 
+  	if(msgJSON.firstMessage) {
+    		// persisto no mongoDB - Async
+    		dbManager.save(msgJSON);
+	} else {
+    		// atualizo no mongoDB - Async
+    		dbManager.update(msgJSON , msgJSON.clientUUID);
+  	}
 
 	// Recuperando todos os usuários - Async
 	console.log('recuperando usuários ...') 
-  dbManager.findAll(function(err, usuarios) {
-    if(err == null) {
+  	dbManager.findAll(function(err, usuarios) {
+    	if(err == null) {
 
-      n.send({usuarios: usuarios, clientUUID: msgJSON.clientUUID});
+      		n.send({usuarios: usuarios, clientUUID: msgJSON.clientUUID});
   
-    } else {
-    	console.log(err);
-    }
+    	} else {
+    		console.log(err);
+	}
   });
 });
