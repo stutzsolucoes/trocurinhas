@@ -194,7 +194,8 @@ function AppViewModel() {
 	//MQTT connection manager setup
 	_self.mqttConnectionManager = new MQTTConnectionManager(
 										"gostutz.com", 61623, false, "user", "user", 
-										10, 25, 0, 2000);
+										10, 25, 0, 2000,
+										JSON.stringify({clientUUID:_self.clientUUID}), "/clients/lastwills");
 	_self.mqttConnectionManager.onConnectingToTargetServer = function() {
 		_self.mqttConnecting(true);
 	}
@@ -234,10 +235,12 @@ function AppViewModel() {
 			}
 
 			//if this is the first message from sender, send self stickers to him
+			//TODO: REMOVE THIS AFTER NODEJS AGENT IMPLEMENTATION!
 			if(stickersInfo.firstMessage) {
 				_self.publishStickersInfoToServer(false);
 			}
-			
+	
+		
 			_self.receivedStickersInfo.push(stickersInfo);
 			_self.recalculateStickersInfoRanking();
 		} catch(e) {
