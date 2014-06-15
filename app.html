@@ -210,29 +210,23 @@
 
        <section class="chatting" data-bind="with: $root.viewChat, showRightIn: currentTransition().id == 5, hideRightOut: currentTransition().id == 6">
           <div class="messages-container">
-            <div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div>
-            <div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-              <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-                <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-                  <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-                    <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-                      <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-                        <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-                          <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
+            
+            <div class="his-message">
+              <div class="message">
+                <div class="message-sender-name"><span>Guilherme</span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
 
+             <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
 
-            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div><div class="my-message">Blz! Bora combinar...</div>
-            <div class="his-messages">Ok. Espero seu e-mail...</div>
           </div>
           <div class="input-message-container">
             <textarea class="chatting-textarea" data-bind="value: message" rows="1"></textarea>
@@ -285,7 +279,7 @@
     })(jQuery);
 
     jQuery(".chatting").on('show', function() {
-       jQuery(".messages-container").scrollTop(jQuery(document).height());
+       jQuery(".messages-container").scrollTop(jQuery(".messages-container")[0].scrollHeight);
     });
 
     jQuery(window).on('resize', function(){
