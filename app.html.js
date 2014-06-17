@@ -325,9 +325,7 @@ function AppViewModel() {
 	connectingState = new InteractionModelState(_self.viewConnect);
 	chosingPeerState = new InteractionModelState(_self.viewNearPeople, "desconectar");
 	exchangingState = new InteractionModelState(_self.viewExchangingArena, "voltar");
-	chattingState = new InteractionModelState(_self.viewChat, "voltar", null, function(){
-		jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
-	});
+	chattingState = new InteractionModelState(_self.viewChat, "voltar");
 	_self.interactionExchangeNow = new InteractionModel(_self, 4, connectingState);
 	_self.interactionExchangeNow.addTransition(connectingState, chosingPeerState, "connected", 1);
 	_self.interactionExchangeNow.addTransition(chosingPeerState, exchangingState, "exchange", 2);

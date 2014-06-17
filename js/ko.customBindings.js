@@ -78,7 +78,10 @@ ko.bindingHandlers.showRightIn = {
     if (value) {
       $(element).show();
       $(element).css("left", "100%");
-      $(element).animate({ left: '0%',}, 300);
+      $(element).animate({ left: '0%',}, 300, function() {
+        jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
+        jQuery(".messages-container").scrollTop(window.screen.availHeight);
+      });
     }
   }
 }

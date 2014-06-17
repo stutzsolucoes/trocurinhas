@@ -227,6 +227,110 @@
               </div>
             </div>
 
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
+              <div class="my-message">
+              <div class="message">
+                <div class="message-sender-name"><span></span></div>
+                <div class="message-text">Ok, amanhã de manhã pego os ingressos com você.</div>
+                <div align="right" class="message-time">09:33</div>
+              </div>
+            </div>
+
           </div>
           <div class="input-message-container">
             <textarea class="chatting-textarea" data-bind="value: message" rows="1"></textarea>
@@ -265,26 +369,15 @@
       }else{
         this.rows = this.value.match(/\n/g).length + 1 
       }
-      jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");        
-    });
-
-    (function ($) {
-      $.each(['show', 'hide'], function (i, ev) {
-        var el = $.fn[ev];
-        $.fn[ev] = function () {
-          this.trigger(ev);
-          return el.apply(this, arguments);
-        };
-      });
-    })(jQuery);
-
-    jQuery(".chatting").on('show', function() {
-       jQuery(".messages-container").scrollTop(jQuery(".messages-container")[0].scrollHeight);
+      //jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");        
     });
 
     jQuery(window).on('resize', function(){
-      jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
+      if (jQuery(document).height() < jQuery(".messages-container").height()) {
+        jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
+      }
     });
+    
   </script>
 
   <script>
