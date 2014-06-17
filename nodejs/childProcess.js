@@ -10,18 +10,16 @@ _self.cliente = provider.criarCliente();
 
 process.on('message', function(m){
 
-	var i = 0;
+    var usuarios = m.usuarios;
+    var clientUUID = m.clientUUID;
+    var broadcastMsg = "";
 
-	var usuarios = m.usuarios;
-	var clientUUID = m.clientUUID;
-
-	for (i; i < usuarios.length; i++) {
-		console.log(JSON.stringify(usuarios[i]));
-        var broadcastMsg = JSON.stringify(usuarios[i]);
+    usuarios.forEach(function(u){
+        console.log(JSON.stringify(u));
+        broadcastMsg = JSON.stringify(u);
         // realizo a distribuição da mensagem
-        console.log('usuários recuperados !');
-        publicador.publicar(broadcastMsg , '/teste/' + clientUUID , _self.cliente); 
-        console.log('mensagem publicada !')
-        console.log('índice: ' + i);
-    }
+        console.log('publicadorUsuariosOnline: usuários recuperados !');
+        publicador.publicar(broadcastMsg , '/clients/' + clientUUID , _self.cliente); 
+        console.log('publicadorUsuariosOnline: mensagem publicada !')
+    })
 });
