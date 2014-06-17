@@ -4,7 +4,7 @@
 //connected to the topics as soon as there is any kind of connectivity to the server, 
 //without any user action
 //author: Flávio Stutz@2014
-MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, username, password, connectionTimeoutSeconds, connectionKeepaliveSeconds, maxRetries, timeBetweenRetriesMillis) {
+MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, username, password, connectionTimeoutSeconds, connectionKeepaliveSeconds, maxRetries, timeBetweenRetriesMillis, lastWillPayload, lastWillTopicName) {
 	if(!Messaging.Client) {
 		throw "MQTTConnectionManager depends on Eclipse Paho javascript MQTT Client in order to work";
 	}
@@ -19,6 +19,10 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 	_self.useSSL = useSSL;
 	_self.maxRetries = maxRetries;
 	_self.timeBetweenRetriesMillis = timeBetweenRetriesMillis;
+	if(lastWillPayload!=null && lastWillTopicName!=null) {
+		_self.lastWillMessage = new Message(lastWillPayload);
+		_self.lastWillMessage.destinationName(lastWillTopicName);
+	}
 
 	//callback functions
 	_self.onDisconnectedFromServer = null;
@@ -40,6 +44,7 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 	_self.mqttConnectionOptions = {
 		timeout : connectionTimeoutSeconds,
 		keepAliveInterval : connectionKeepaliveSeconds,
+		willMessage: _self.lastWillMessage
 		onSuccess : function() {
 			console.log("Connected successfuly to MQTT server");
 			_self._failedConnectionRetryCount = 0;
