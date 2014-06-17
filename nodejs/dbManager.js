@@ -7,23 +7,21 @@ var _self = this;
 
 if(_self.db == null){
 	_self.db = dbProvider.getDb();
-	console.log('conectado ao mongodb');
-	// console.log(_self.db);
 }
 
+// insere um registro no mongoDB
 module.exports.save = function(object) {
-	console.log('vou persistir no mongo ...');
 	
-	_self.db.collection('trocurinhas').insert(object, function(err,result){
+	_self.db.collection('trocurinhas').insert(object, function(err,resultado){
 		if(err == null) {
-			console.log('usuário salvo com sucesso !');
+			console.log('usuário salvo com sucesso !' + JSON.stringify(resultado));
 		} else {
 			console.log(err);
-			return err;
 		}
 	});
 }
 
+// Recupera todos os registros no mongoDB
 module.exports.findAll = function(callback) {
 
 	_self.db.collection('trocurinhas').find().toArray(function(err, usuarios){
@@ -35,13 +33,24 @@ module.exports.findAll = function(callback) {
 	});
 }
 
-module.exports.update = function(object, id) {
-	console.log('vou atualizar no mongo ...');
+// atualiza todos os registros para o cliente com o clientUUID recebido de parâmetro
+module.exports.update = function(object, clientUUID) {
+
+	var findQuery = {clientUUID: clientUUID};
 
 	// prepara o JSON para o formato mongoDB
-	var setParm = { $set: object};
+	var setParm = {$set: object};
 
-	_self.db.collection('trocurinhas').updateById(id, setParm, function(err, resultado){
-		(err == null) ? console.log('atualizado com sucesso!') : console.log(err)
+	_self.db.collection('trocurinhas').update(findQuery, setParm, {upsert: false}, function(err, resultado){
+		(err == null) ? console.log('atualizado com sucesso! ' + resultado) : console.log(err)
 	});
 }
+
+// remove todos os registros para o clientUUID recebido de parâmetro
+module.exports.remove = function(clientUUID){
+
+	_self.db.collection('trocurinhas').remove({clientUUID: clientUUID} , function(err, resultado){
+		(err == null) ? console.log('removido com sucesso! ' + resultado) : console.log(err)
+	});
+
+};
