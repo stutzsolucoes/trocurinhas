@@ -13,11 +13,7 @@ if(_self.db == null){
 module.exports.save = function(object) {
 	
 	_self.db.collection('trocurinhas').insert(object, function(err,resultado){
-		if(err == null) {
-			console.log('usuário salvo com sucesso !' + JSON.stringify(resultado));
-		} else {
-			console.log(err);
-		}
+		(err == null) ? console.log('usuário salvo com sucesso !') : console.log(err)
 	});
 }
 
@@ -25,11 +21,7 @@ module.exports.save = function(object) {
 module.exports.findAll = function(callback) {
 
 	_self.db.collection('trocurinhas').find().toArray(function(err, usuarios){
-		if(err == null) {
-			callback(err, usuarios);
-		} else {
-			console.log(err);				
-		}		
+		(err == null) ? callback(err,usuarios) : console.log(err);
 	});
 }
 
