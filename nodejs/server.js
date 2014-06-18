@@ -67,3 +67,16 @@ _self.cliente.on('message', function (topic, message) {
   	}
 
 });
+
+// Captura a interrupção do processo e encerra todos os filhos antes de finalizar "server.js"
+process.on('SIGINT', function() {
+  console.log('Sinal de interrupção capturado !! encerrando processos filhos ...' );
+  console.log('encerrando o publicadorUsuariosOnline...');
+  publicadorUsuariosOnline.disconnect();
+  console.log('encerrando o gerenteDeMensagens... ');
+  gerenteDeMensagens.disconnect();
+  console.log('encerrando o processadorDeDesconexoes... ');
+  processadorDeDesconexoes.disconnect();
+  console.log('encerrando server.js...');
+  process.exit();
+});
