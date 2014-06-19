@@ -10,8 +10,13 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 	}
 
 	var _self = this;
-
-	_self.topicNames = new Array();
+	var SubscribedTopic = function(topicName, onMessageArrivedCallback) {
+		this.topicName = topicName;
+		if (typeof onMessageArrivedCallback === 'function') {
+			this.receiveMessage = onMessageArrivedCallback;
+		}
+	}
+	_self.subscribedTopics = new Array();
 	_self.serverHostname = serverHostname;
 	_self.serverPortNumber = serverPortNumber;
 	_self.username = username;
@@ -20,8 +25,8 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 	_self.maxRetries = maxRetries;
 	_self.timeBetweenRetriesMillis = timeBetweenRetriesMillis;
 	if(lastWillPayload!=null && lastWillTopicName!=null) {
-		_self.lastWillMessage = new Message(lastWillPayload);
-		_self.lastWillMessage.destinationName(lastWillTopicName);
+		//_self.lastWillMessage = new Messaging.Message(lastWillPayload);
+		//_self.lastWillMessage.destinationName(lastWillTopicName);
 	}
 
 	//callback functions
@@ -44,7 +49,7 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 	_self.mqttConnectionOptions = {
 		timeout : connectionTimeoutSeconds,
 		keepAliveInterval : connectionKeepaliveSeconds,
-		willMessage: _self.lastWillMessage
+		//willMessage: _self.lastWillMessage,
 		onSuccess : function() {
 			console.log("Connected successfuly to MQTT server");
 			_self._failedConnectionRetryCount = 0;
@@ -150,8 +155,8 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 
 	_self._performSubscriptions = function() {
 		console.log("Subscribing to topics");
-		for(var i=0; i<_self.topicNames.length; i++) {
-			var topicName = _self.topicNames[i];
+		for(var i=0; i<_self.subscribedTopics.length; i++) {
+			var topicName = _self.subscribedTopics[i].topicName;
 			_self._subscribeToTargetTopic(topicName);
 		}
 	}
@@ -187,6 +192,10 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 		}
 	}
 
+
+	_self.topicNameMatch = function(topicNameLookup, targetTopicName) {
+		return topicNameLookup == targetTopicName;
+	}
 	_self.connectToServer = function() {
 		console.log("Connecting to MQTT server. From now the connection will be reestablished when dropped.");
 		_self.mqttClient = new Messaging.Client(
@@ -197,12 +206,14 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 			_self.mqttConnectionOptions.onFailure(message);
 		}
 		_self.mqttClient.onMessageArrived = function(message) {
-			if(_self.onMessageArrived) {
-				try {
-					_self.onMessageArrived(message);
-				} catch(e) {
-					console.log(e);
-				}
+			try {
+				for (var i = 0; i < _self.subscribedTopics.length; i++) {
+					if(_self.topicNameMatch(_self.subscribedTopics[i].topicName, "/"+message.destinationName)) {
+						_self.subscribedTopics[i].receiveMessage(message);
+					}
+				};
+			} catch(e) {
+				console.log(e);
 			}
 		}
 		_self._connectToTargetServer();
@@ -224,17 +235,22 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 		}
 	}
 
-	_self.subscribeToTopic = function(topicName) {
-		_self.topicNames.push(topicName);
+	_self.subscribeToTopic = function(topicName, callback) {
+		_self.subscribedTopics.push(new SubscribedTopic(topicName, callback));
 		if(_self._isTargetServerConnected) {
 			_self._subscribeToTargetTopic(topicName);
 		}
 	}
 
 	_self.unsubscribeFromTopic = function(topicName) {
-		var i = _self.topicNames.indexOf(topicName);
-		if(i>-1) {
-			_self.topicNames.splice(i, 1);
+		var index = 0;
+		for (var i = 0; i < _self.subscribedTopics.length; i++) {
+			if(_self.subscribedTopics[i].topicName == topicName) {
+				index = i;
+			}
+		};
+		if(index>-1) {
+			_self.subscribedTopics.splice(index, 1);
 		} else {
 			throw "Topic " + topicName + " is not subscribed"
 		}

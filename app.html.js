@@ -150,13 +150,45 @@ function ExchangingArenaViewModel(viewId, viewPageTitle) {
 	}
 }
 
+var regex = /(<([^>]+)>)/ig;
+
 /** CHAT VIEW MODEL * */
-function ChatViewModel(viewId, viewPageTitle) {
+function ChatViewModel(viewId, viewPageTitle, parentViewModel) {
 	var _self = this;
 	_self.id = viewId;
 	_self.pageTitle = viewPageTitle;
 	_self.currentPeer = ko.observable(new StickersInfo());
 	_self.message = ko.observable("");
+	_self.messages = ko.observableArray(new Array());
+	_self.parentViewModel = parentViewModel;
+	_self.formattedDate = function(timeInMilis) {
+		return moment(new Date(timeInMilis)).format("hh:mm");
+	}
+	_self.sendMessage = function() {
+		htmlMessage = _self.message().replace(regex, "").replace(/\n/g, "<br />"); //removes all html tags and replaces the \n with <br />
+		var chatMessage = {
+			fromClient: _self.parentViewModel.clientUUID, 
+			toClient: _self.currentPeer().clientUUID,
+			text: htmlMessage,
+			time: new Date().getTime()
+		};
+		parentViewModel.mqttConnectionManager.publishMessage("/clients/" + chatMessage.toClient + "/messages", JSON.stringify(chatMessage));
+		_self.addMessageToChat(chatMessage);
+		_self.message("");
+	}
+	_self.receiveChatMessage = function(mqttMessage) {
+		var chatMessage = JSON.parse(mqttMessage.payloadString);
+		_self.addMessageToChat(chatMessage);
+	}
+	_self.addMessageToChat = function(chatMessage){
+		_self.messages.push(chatMessage);
+      	if (jQuery(document).height() < (jQuery(".messages-container").height()+150)) {
+	      jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
+	    }
+		jQuery(".messages-container").scrollTop(window.screen.availHeight);
+	}
+
+	parentViewModel.mqttConnectionManager.subscribeToTopic("/clients/" + parentViewModel.clientUUID + "/messages", _self.receiveChatMessage);
 }
 
 
@@ -211,10 +243,7 @@ function AppViewModel() {
 		_self.mqttConnecting(false);
 	}
 
-	_self.mqttConnectionManager.subscribeToTopic("/main/notclassified");
-	_self.mqttConnectionManager.subscribeToTopic("/clients/" + _self.clientUUID);
-
-	_self.mqttConnectionManager.onMessageArrived = function(message) {
+	_self.onConnectionMessageArrived = function(message) {
 		try {
 			console.log("Message arrived: " + message.payloadString);
 			stickersInfo = JSON.parse(message.payloadString);
@@ -237,7 +266,7 @@ function AppViewModel() {
 			//if this is the first message from sender, send self stickers to him
 			//TODO: REMOVE THIS AFTER NODEJS AGENT IMPLEMENTATION!
 			if(stickersInfo.firstMessage) {
-				_self.publishStickersInfoToServer(false);
+				//_self.publishStickersInfoToServer(false);
 			}
 	
 		
@@ -247,6 +276,9 @@ function AppViewModel() {
 			console.log(e);
 		}
 	};
+
+	_self.mqttConnectionManager.subscribeToTopic("/main/notclassified", _self.onConnectionMessageArrived);
+	_self.mqttConnectionManager.subscribeToTopic("/clients/" + _self.clientUUID + "/connection", _self.onConnectionMessageArrived);
 
 	_self.mqttConnecting =  ko.observable(false);
 	_self.mqttConnected =  ko.observable(false);
@@ -300,7 +332,11 @@ function AppViewModel() {
 	_self.viewExchangingArena = new ExchangingArenaViewModel(6, "Trocando Figurinhas");
 
 	//#6 - Conversando
-	_self.viewChat = new ChatViewModel(7, "Conversando");
+	_self.viewChat = new ChatViewModel(7, "Conversando", this);
+
+	_self.viewNearPeople.selectedPeer.subscribe(function(newValue) {
+		_self.viewChat.currentPeer(newValue);
+	});
 
 	// /END OF views ~ <section>
 
