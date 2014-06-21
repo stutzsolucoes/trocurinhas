@@ -155,7 +155,8 @@
                   <div>
                     <em data-bind="text: place"></em>
                   </div>
-                  <aside data-bind="text: timeElapsedInfo"></aside>
+                  <aside data-bind="visible: isOnline, text: timeElapsedInfo" style="color: rgb(150, 182, 132)"></aside>
+                  <aside data-bind="visible: !isOnline()" style="color: rgb(233, 128, 128)">offline</aside>
                 </div>
                 
                 <div class="col-action">&gt;</div>                  

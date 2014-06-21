@@ -24,7 +24,10 @@ StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, needed
 	_self.stickersForReceivingFromPeer = new Array();
 	_self.stickersForGivingToPeer = new Array();
 	_self.firstMessage = firstMessage;
-	_self.messages = ko.observableArray(new Array());
+	_self.online = true;
+	_self.isOnline = ko.observable(_self.online);
+	_self.chatMessages = new Array();
+	_self.messages = ko.observableArray(_self.chatMessages);
 };
 
 
@@ -258,9 +261,10 @@ function AppViewModel() {
 			stickersInfo = JSON.parse(message.payloadString);
 			if (stickersInfo.clientUUID == _self.clientUUID)
 				return;
-			
+
 			stickersInfo.timeElapsedInfo = ko.observable(_self.calculateElapsedTime(stickersInfo.time));
-			
+			stickersInfo.isOnline = ko.observable(stickersInfo.online);
+
 			//remove previous results from peer
 			var index = -1;
 			for(var i=0; i<_self.receivedStickersInfo.length; i++) {
@@ -446,6 +450,7 @@ function AppViewModel() {
 			_self.receivedStickersInfo = JSON.parse(localStorage["receivedStickersInfo"]);
 			$(_self.receivedStickersInfo).each(function(idx, stickersInfo) {
 				stickersInfo.timeElapsedInfo = ko.observable(_self.calculateElapsedTime(stickersInfo.time));	
+				stickersInfo.isOnline = ko.observable(false);
 			});			
 		}		
 		_self.viewNearPeople.connectedPeople(_self.receivedStickersInfo);
