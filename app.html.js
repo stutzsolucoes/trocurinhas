@@ -24,6 +24,7 @@ StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, needed
 	_self.stickersForReceivingFromPeer = new Array();
 	_self.stickersForGivingToPeer = new Array();
 	_self.firstMessage = firstMessage;
+	_self.messages = ko.observableArray(new Array());
 };
 
 
@@ -159,8 +160,8 @@ function ChatViewModel(viewId, viewPageTitle, parentViewModel) {
 	_self.pageTitle = viewPageTitle;
 	_self.currentPeer = ko.observable(new StickersInfo());
 	_self.message = ko.observable("");
-	_self.messages = ko.observableArray(new Array());
 	_self.parentViewModel = parentViewModel;
+
 	_self.formattedDate = function(timeInMilis) {
 		return moment(new Date(timeInMilis)).format("hh:mm");
 	}
@@ -173,22 +174,20 @@ function ChatViewModel(viewId, viewPageTitle, parentViewModel) {
 			time: new Date().getTime()
 		};
 		parentViewModel.mqttConnectionManager.publishMessage("/clients/" + chatMessage.toClient + "/messages", JSON.stringify(chatMessage));
-		_self.addMessageToChat(chatMessage);
+		_self.currentPeer().messages.push(chatMessage);
+		_self.showMessage(chatMessage);
 		_self.message("");
-	}
-	_self.receiveChatMessage = function(mqttMessage) {
-		var chatMessage = JSON.parse(mqttMessage.payloadString);
-		_self.addMessageToChat(chatMessage);
-	}
-	_self.addMessageToChat = function(chatMessage){
-		_self.messages.push(chatMessage);
-      	if (jQuery(document).height() < (jQuery(".messages-container").height()+150)) {
-	      jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
-	    }
-		jQuery(".messages-container").scrollTop(window.screen.availHeight);
-	}
 
-	parentViewModel.mqttConnectionManager.subscribeToTopic("/clients/" + parentViewModel.clientUUID + "/messages", _self.receiveChatMessage);
+		localStorage["receivedStickersInfo"] = JSON.stringify(_self.receivedStickersInfo);
+	}
+	_self.showMessage = function(chatMessage){
+		if (chatMessage.fromClient === currentPeer().clientUUID || chatMessage.fromClient === parentViewModel.clientUUID) {
+	      	if (jQuery(document).height() < (jQuery(".messages-container").height()+150)) {
+		      jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
+		    }
+			jQuery(".messages-container").scrollTop(2000);
+		}
+	}	
 }
 
 
@@ -196,8 +195,9 @@ function ChatViewModel(viewId, viewPageTitle, parentViewModel) {
 
 /** -- GLOBAL VIEW MODEL -- **/
 function AppViewModel() {
-
 	var _self = this;
+
+	_self.loading = ko.observable(true);
 
 	//____model stuff
 	var _defaultItems1 = new Array();
@@ -223,6 +223,14 @@ function AppViewModel() {
 		localStorage["clientUUID"] = _self.clientUUID;
 	}
 
+	_self.updateReceivedStickersLocalInfo = function() {
+		if (_self.receivedStickersInfo!=undefined && _self.receivedStickersInfo!=null && _self.receivedStickersInfo.length > 0) {
+			localStorage["receivedStickersInfo"] = JSON.stringify(_self.receivedStickersInfo);
+		}else{
+			delete localStorage["receivedStickersInfo"];
+		}
+	}
+
 	//MQTT connection manager setup
 	_self.mqttConnectionManager = new MQTTConnectionManager(
 										"gostutz.com", 61623, false, "user", "user", 
@@ -236,6 +244,7 @@ function AppViewModel() {
 		_self.mqttConnected(true);
 		localStorage["connectedToServer"] = true;
 		_self.publishStickersInfoToServer(true);
+		_self.loading(false);
 	}
 	_self.mqttConnectionManager.onDisconnectedFromServer = function() {
 		_self.mqttConnected(false);
@@ -247,6 +256,9 @@ function AppViewModel() {
 		try {
 			console.log("Message arrived: " + message.payloadString);
 			stickersInfo = JSON.parse(message.payloadString);
+			if (stickersInfo.clientUUID == _self.clientUUID)
+				return;
+			
 			stickersInfo.timeElapsedInfo = ko.observable(_self.calculateElapsedTime(stickersInfo.time));
 			
 			//remove previous results from peer
@@ -262,28 +274,35 @@ function AppViewModel() {
 			if(index > -1) {
 				_self.receivedStickersInfo.splice(index,1);
 			}
-
-			//if this is the first message from sender, send self stickers to him
-			//TODO: REMOVE THIS AFTER NODEJS AGENT IMPLEMENTATION!
-			if(stickersInfo.firstMessage) {
-				//_self.publishStickersInfoToServer(false);
-			}
-	
 		
 			_self.receivedStickersInfo.push(stickersInfo);
 			_self.recalculateStickersInfoRanking();
+
+			_self.updateReceivedStickersLocalInfo();
 		} catch(e) {
 			console.log(e);
 		}
 	};
 
+
+	_self.onChatMessageArrived = function(message) {
+		var chatMessage = JSON.parse(mqttMessage.payloadString);
+		var sender = $(_self.receivedStickersInfo).filter(function(){
+			return this.clientUUID === chatMessage.fromClient;
+		});
+		sender.messages.push(chatMessage);
+		viewChat.showMessage(chatMessage);
+
+		_self.updateReceivedStickersLocalInfo();
+	}
+
 	_self.mqttConnectionManager.subscribeToTopic("/main/notclassified", _self.onConnectionMessageArrived);
-	_self.mqttConnectionManager.subscribeToTopic("/clients/" + _self.clientUUID + "/connection", _self.onConnectionMessageArrived);
+	_self.mqttConnectionManager.subscribeToTopic("/clients/" + _self.clientUUID + "/connection/peerslist", _self.onConnectionMessageArrived);
+	_self.mqttConnectionManager.subscribeToTopic("/clients/" + _self.clientUUID + "/connection/pendingmessages", _self.onChatMessageArrived);
+	_self.mqttConnectionManager.subscribeToTopic("/clients/" + _self.clientUUID + "/messages", _self.onChatMessageArrived);
 
 	_self.mqttConnecting =  ko.observable(false);
 	_self.mqttConnected =  ko.observable(false);
-
-	_self.receivedStickersInfo = new Array();
 	// /END OF ____model stuff
 
 
@@ -332,7 +351,7 @@ function AppViewModel() {
 	_self.viewExchangingArena = new ExchangingArenaViewModel(6, "Trocando Figurinhas");
 
 	//#6 - Conversando
-	_self.viewChat = new ChatViewModel(7, "Conversando", this);
+	_self.viewChat = new ChatViewModel(7, "Conversando", new Array(), this);
 
 	_self.viewNearPeople.selectedPeer.subscribe(function(newValue) {
 		_self.viewChat.currentPeer(newValue);
@@ -371,6 +390,7 @@ function AppViewModel() {
 	_self.interactionExchangeNow.addTransition(chosingPeerState, connectingState, "cancel", 3, function() {
 		if(_self.mqttConnectionManager.isMaintainingConnectionToServer()) {
 			_self.mqttConnectionManager.disconnectFromServer();
+			localStorage["connected"] = "0";
 		}
 	});
 	_self.interactionExchangeNow.addTransition(exchangingState, chosingPeerState, "cancel", 4);
@@ -418,6 +438,20 @@ function AppViewModel() {
 		}
 		return info;
 	}
+
+	_self.initializeReceivedStickersInfo = function() {
+		if(localStorage["receivedStickersInfo"] == undefined || localStorage["receivedStickersInfo"] == null){
+			_self.receivedStickersInfo = new Array();
+		}else{
+			_self.receivedStickersInfo = JSON.parse(localStorage["receivedStickersInfo"]);
+			$(_self.receivedStickersInfo).each(function(idx, stickersInfo) {
+				stickersInfo.timeElapsedInfo = ko.observable(_self.calculateElapsedTime(stickersInfo.time));	
+			});			
+		}		
+		_self.viewNearPeople.connectedPeople(_self.receivedStickersInfo);
+	}
+	_self.initializeReceivedStickersInfo();
+	
 	//update elapsed time informations
 	window.setInterval(function() {
 		//add time messages
@@ -425,6 +459,7 @@ function AppViewModel() {
  			var stickersInfo = _self.receivedStickersInfo[i];
 			stickersInfo.timeElapsedInfo(_self.calculateElapsedTime(stickersInfo.time));
 		}
+		_self.updateReceivedStickersLocalInfo();
 	}, 50000);
 
 
@@ -434,12 +469,11 @@ function AppViewModel() {
 		localStorage["place"] = _self.viewConnect.place();
 		localStorage["selfInfo"] = _self.viewConnect.selfInfo();
 
-		//clear previous known people
-		_self.receivedStickersInfo = new Array();
-		_self.viewNearPeople.connectedPeople.removeAll();
+		_self.initializeReceivedStickersInfo();
 
 		//connect to mqtt server
 		_self.mqttConnectionManager.connectToServer();
+		localStorage["connected"] = "1";
 	}
 
 	_self.publishStickersInfoToServer = function(firstMessage) {
@@ -524,15 +558,17 @@ function AppViewModel() {
 				});
 				
 				//update screen items
-				_self.viewNearPeople.connectedPeople.removeAll();
-				for(var i=0; i<_self.receivedStickersInfo.length; i++) {
-					_self.viewNearPeople.connectedPeople.push(_self.receivedStickersInfo[i]);
-				}
+				_self.viewNearPeople.connectedPeople(_self.receivedStickersInfo);
 			}
 		}
 				
 	}
 
+	if (localStorage["connected"] == "1") {
+		_self.connectToMQTTServer();
+	}else{
+		_self.loading(false);
+	}
 }
 
 //***** /end of VIEW VIEWMODELS ******//
