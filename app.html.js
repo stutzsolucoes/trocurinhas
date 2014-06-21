@@ -12,7 +12,7 @@ var generateUUID = (function() {
 })();
 /*** /END utils ***/
 
-StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, neededStickers, availableStickers, firstMessage) {
+StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, neededStickers, availableStickers, firstMessage, online) {
 	var _self = this;
 	_self.clientUUID = clientUUID,
 	_self.time = timeParam,
@@ -24,7 +24,7 @@ StickersInfo = function(clientUUID, timeParam, nickname, place, selfInfo, needed
 	_self.stickersForReceivingFromPeer = new Array();
 	_self.stickersForGivingToPeer = new Array();
 	_self.firstMessage = firstMessage;
-	_self.online = true;
+	_self.online = online;
 	_self.isOnline = ko.observable(_self.online);
 	_self.chatMessages = new Array();
 	_self.messages = ko.observableArray(_self.chatMessages);
@@ -246,8 +246,12 @@ function AppViewModel() {
 		_self.mqttConnecting(false);
 		_self.mqttConnected(true);
 		localStorage["connectedToServer"] = true;
-		_self.publishStickersInfoToServer(true);
+		_self.publishStickersInfoToServer(true, true);
 		_self.loading(false);
+	}
+
+	_self.mqttConnectionManager.onDisconnectingFromServer = function() {
+		_self.publishStickersInfoToServer(false, false);
 	}
 	_self.mqttConnectionManager.onDisconnectedFromServer = function() {
 		_self.mqttConnected(false);
@@ -317,14 +321,14 @@ function AppViewModel() {
 	_self.handleStickersUpdate = function() {
 		var timeSinceLastDirtyUpdate = new Date().getTime()-_self.lastDirtyTime;
 		if(timeSinceLastDirtyUpdate > 4000) {
-			_self.publishStickersInfoToServer(false)
+			_self.publishStickersInfoToServer(false, true)
 			_self.recalculateStickersInfoRanking();
 		} else {
 			//if nothing else happens, do the real publishing
 			if(!_self.stickersUpdateTimerActivated) {
 				window.setTimeout(
 					function() {
-						_self.publishStickersInfoToServer(false)
+						_self.publishStickersInfoToServer(false, true)
 						_self.recalculateStickersInfoRanking();
 						_self.stickersUpdateTimerActivated = false;
 					}, 4000);
@@ -394,7 +398,6 @@ function AppViewModel() {
 	_self.interactionExchangeNow.addTransition(chosingPeerState, connectingState, "cancel", 3, function() {
 		if(_self.mqttConnectionManager.isMaintainingConnectionToServer()) {
 			_self.mqttConnectionManager.disconnectFromServer();
-			localStorage["connected"] = "0";
 		}
 	});
 	_self.interactionExchangeNow.addTransition(exchangingState, chosingPeerState, "cancel", 4);
@@ -420,7 +423,7 @@ function AppViewModel() {
 	_self.firstTimeRunning(false); //
 	if (_self.firstTimeRunning()) {
 		_self.currentInteraction = ko.observable(_self.interactionWelcome);
-    } else if(localStorage["connectedToServer"]) {
+    } else if(localStorage["connectedToServer"]=="false") {
 		_self.currentInteraction = ko.observable(_self.interactionExchangeNow);
 	} else {
 		_self.currentInteraction = ko.observable(_self.interactionNeededStickers);
@@ -465,6 +468,7 @@ function AppViewModel() {
 			stickersInfo.timeElapsedInfo(_self.calculateElapsedTime(stickersInfo.time));
 		}
 		_self.updateReceivedStickersLocalInfo();
+		_self.publishStickersInfoToServer(false, true);
 	}, 50000);
 
 
@@ -478,10 +482,9 @@ function AppViewModel() {
 
 		//connect to mqtt server
 		_self.mqttConnectionManager.connectToServer();
-		localStorage["connected"] = "1";
 	}
 
-	_self.publishStickersInfoToServer = function(firstMessage) {
+	_self.publishStickersInfoToServer = function(firstMessage, online) {
 		if(_self.mqttConnectionManager.isMaintainingConnectionToServer()) {
 			console.log("Preparing stickers info...");
 			var stickersInfo = new StickersInfo(_self.clientUUID,
@@ -491,7 +494,8 @@ function AppViewModel() {
 				_self.viewConnect.selfInfo.peek(),
 				_self.getOnlySelectedItems(_self.viewNeededStickers.items()),
 				_self.getOnlySelectedItems(_self.viewAvailableStickers.items()),
-				firstMessage
+				firstMessage,
+				online
 				//stickersForReceivingFromPeer: Array - used later during ranking calculations
 				//stickersForGivingToPeer: Array - used later during ranking calculations
 			);
@@ -569,7 +573,7 @@ function AppViewModel() {
 				
 	}
 
-	if (localStorage["connected"] == "1") {
+	if (localStorage["connectedToServer"]=="true") {
 		_self.connectToMQTTServer();
 	}else{
 		_self.loading(false);

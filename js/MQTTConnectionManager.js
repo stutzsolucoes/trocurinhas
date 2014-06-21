@@ -31,6 +31,7 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 
 	//callback functions
 	_self.onDisconnectedFromServer = null;
+	_self.onDisconnectingFromServer = null;
 	_self.onMaxConnectionRetriesReached = null;
 	_self.onMaxPublishRetriesReached = null;
 	_self.onConnectingToTargetServer = null;
@@ -224,6 +225,13 @@ MQTTConnectionManager = function(serverHostname, serverPortNumber, useSSL, usern
 	}
 	_self.disconnectFromServer = function() {
 		console.log("Disconnecting from MQTT server. Will not try to maintain connections anymore");
+		if(_self.onDisconnectingFromServer) {
+			try {
+				_self.onDisconnectingFromServer.call();
+			} catch(e) {
+				console.log(e);
+			}
+		}
 		_self._disconnectFromTargetServer();
 		_self.mqttClient = null;
 		if(_self.onDisconnectedFromServer) {
