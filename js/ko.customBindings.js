@@ -82,7 +82,7 @@ ko.bindingHandlers.showRightIn = {
         if (jQuery(document).height() < jQuery(".messages-container").height()) {
           jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
         }
-        jQuery(".messages-container").scrollTop(window.screen.availHeight);
+        jQuery(".messages-container").scrollTop(40000);
       });
     }
   }

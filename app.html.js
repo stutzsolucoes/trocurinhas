@@ -176,7 +176,7 @@ function ChatViewModel(viewId, viewPageTitle, parentViewModel) {
 			text: htmlMessage,
 			time: new Date().getTime()
 		};
-		parentViewModel.mqttConnectionManager.publishMessage("/clients/" + chatMessage.toClient + "/messages", JSON.stringify(chatMessage));
+		_self.parentViewModel.mqttConnectionManager.publishMessage("/clients/" + chatMessage.toClient + "/messages", JSON.stringify(chatMessage));
 		_self.currentPeer().messages.push(chatMessage);
 		_self.showMessage(chatMessage);
 		_self.message("");
@@ -184,11 +184,11 @@ function ChatViewModel(viewId, viewPageTitle, parentViewModel) {
 		localStorage["receivedStickersInfo"] = JSON.stringify(_self.receivedStickersInfo);
 	}
 	_self.showMessage = function(chatMessage){
-		if (chatMessage.fromClient === currentPeer().clientUUID || chatMessage.fromClient === parentViewModel.clientUUID) {
+		if (chatMessage.fromClient === _self.currentPeer().clientUUID || chatMessage.fromClient === _self.parentViewModel.clientUUID) {
 	      	if (jQuery(document).height() < (jQuery(".messages-container").height()+150)) {
 		      jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
 		    }
-			jQuery(".messages-container").scrollTop(2000);
+			jQuery(".messages-container").scrollTop(2000+_self.currentPeer().chatMessages.length*100);
 		}
 	}	
 }
@@ -274,6 +274,8 @@ function AppViewModel() {
 			for(var i=0; i<_self.receivedStickersInfo.length; i++) {
 				if(stickersInfo.clientUUID==_self.receivedStickersInfo[i].clientUUID) {
 					index = i;
+					stickersInfo.chatMessages = _self.receivedStickersInfo[i].chatMessages;
+					stickersInfo.messages = ko.observableArray(_self.receivedStickersInfo[i].chatMessages);
 					break;
 				}
 			}
@@ -286,6 +288,10 @@ function AppViewModel() {
 			_self.receivedStickersInfo.push(stickersInfo);
 			_self.recalculateStickersInfoRanking();
 
+			if(_self.viewChat.currentPeer().clientUUID == stickersInfo.clientUUID) {
+				_self.viewChat.currentPeer(stickersInfo);
+			}
+
 			_self.updateReceivedStickersLocalInfo();
 		} catch(e) {
 			console.log(e);
@@ -293,13 +299,14 @@ function AppViewModel() {
 	};
 
 
-	_self.onChatMessageArrived = function(message) {
+	_self.onChatMessageArrived = function(mqttMessage) {
 		var chatMessage = JSON.parse(mqttMessage.payloadString);
 		var sender = $(_self.receivedStickersInfo).filter(function(){
 			return this.clientUUID === chatMessage.fromClient;
-		});
+		})[0];
 		sender.messages.push(chatMessage);
-		viewChat.showMessage(chatMessage);
+		//sender.chatMessages.push(chatMessage);
+		_self.viewChat.showMessage(chatMessage);
 
 		_self.updateReceivedStickersLocalInfo();
 	}
@@ -359,7 +366,7 @@ function AppViewModel() {
 	_self.viewExchangingArena = new ExchangingArenaViewModel(6, "Trocando Figurinhas");
 
 	//#6 - Conversando
-	_self.viewChat = new ChatViewModel(7, "Conversando", new Array(), this);
+	_self.viewChat = new ChatViewModel(7, "Conversando", this);
 
 	_self.viewNearPeople.selectedPeer.subscribe(function(newValue) {
 		_self.viewChat.currentPeer(newValue);
@@ -423,7 +430,7 @@ function AppViewModel() {
 	_self.firstTimeRunning(false); //
 	if (_self.firstTimeRunning()) {
 		_self.currentInteraction = ko.observable(_self.interactionWelcome);
-    } else if(localStorage["connectedToServer"]=="false") {
+    } else if(localStorage["connectedToServer"]=="true") {
 		_self.currentInteraction = ko.observable(_self.interactionExchangeNow);
 	} else {
 		_self.currentInteraction = ko.observable(_self.interactionNeededStickers);
@@ -447,13 +454,15 @@ function AppViewModel() {
 	}
 
 	_self.initializeReceivedStickersInfo = function() {
-		if(localStorage["receivedStickersInfo"] == undefined || localStorage["receivedStickersInfo"] == null){
+		if(localStorage["receivedStickersInfo"] == undefined || localStorage["receivedStickersInfo"] == "undefined" || localStorage["receivedStickersInfo"] == null){
 			_self.receivedStickersInfo = new Array();
 		}else{
 			_self.receivedStickersInfo = JSON.parse(localStorage["receivedStickersInfo"]);
 			$(_self.receivedStickersInfo).each(function(idx, stickersInfo) {
 				stickersInfo.timeElapsedInfo = ko.observable(_self.calculateElapsedTime(stickersInfo.time));	
-				stickersInfo.isOnline = ko.observable(false);
+				stickersInfo.online = false;
+				stickersInfo.isOnline = ko.observable(stickersInfo.online);
+				stickersInfo.messages = ko.observableArray(stickersInfo.chatMessages);
 			});			
 		}		
 		_self.viewNearPeople.connectedPeople(_self.receivedStickersInfo);
@@ -559,6 +568,11 @@ function AppViewModel() {
 			//order ranking by best matches
 			if(_self.receivedStickersInfo.length>0) {
 				_self.receivedStickersInfo.sort(function(left,right) {
+					if (left.online && !right.online) {
+						return -1;
+					}else if (!left.online && right.online) {
+						return 1;
+					}
 					if(left.stickersForReceivingFromPeer.length > right.stickersForReceivingFromPeer.length) {
 						return -1;
 					} else {
