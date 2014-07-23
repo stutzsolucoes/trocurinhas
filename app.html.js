@@ -163,6 +163,7 @@ function ChatViewModel(viewId, viewPageTitle, parentViewModel) {
 	_self.pageTitle = viewPageTitle;
 	_self.currentPeer = ko.observable(new StickersInfo());
 	_self.message = ko.observable("");
+	_self.notificationMessage = ko.observable("");
 	_self.parentViewModel = parentViewModel;
 
 	_self.formattedDate = function(timeInMilis) {
@@ -189,6 +190,15 @@ function ChatViewModel(viewId, viewPageTitle, parentViewModel) {
 		      jQuery(".messages-container").css("height", (jQuery(document).height()-148) + "px");
 		    }
 			jQuery(".messages-container").scrollTop(2000+_self.currentPeer().chatMessages.length*100);
+		}else{
+			var sender = $(_self.parentViewModel.receivedStickersInfo).filter(function(){
+				return this.clientUUID === chatMessage.fromClient;
+			})[0];
+			_self.notificationMessage({sender: sender.nickname, text: chatMessage.text});
+
+			jQuery("#notification").css("top",'-60px');
+			jQuery("#notification").show();
+			jQuery("#notification").animate({ top: '0px',}, 300);			
 		}
 	}	
 }

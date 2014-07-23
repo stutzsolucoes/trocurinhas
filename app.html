@@ -50,6 +50,19 @@
       </div>
     </header>
 
+    <article id="notification">
+      <section class="chat">
+        <div class="content">
+          <h1 data-bind="text: $root.viewChat.notificationMessage().sender">Pessoa</h1>
+          <div data-bind="html: $root.viewChat.notificationMessage().text">Mensagem</div>
+        </div>
+        <div class="command">
+            <button onclick="$('#notification').animate({ top: '-80px',}, 300,function(){$('#notification').hide()});">x</button>
+        </div>
+        <div style="clear: both"></div>
+      </section>
+    </article>
+
     <article id="welcome" data-bind="visible: currentInteraction() == interactionWelcome, with: interactionWelcome">
 
       <section class="listagem" data-bind="with: currentState().view">
